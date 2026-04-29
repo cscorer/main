@@ -95,42 +95,6 @@
       line-height: 1.6;
     }
 
-    /* ── Formula strip ── */
-    .formula-strip {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      padding: 20px 40px;
-      display: flex;
-      gap: 0;
-      align-items: stretch;
-      overflow-x: auto;
-    }
-    .formula-step {
-      flex: 1;
-      min-width: 180px;
-      padding: 16px 20px;
-      border-right: 1px solid var(--border);
-    }
-    .formula-step:last-child { border-right: none; }
-    .formula-step .step-num {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--blue);
-      margin-bottom: 6px;
-    }
-    .formula-step .step-title {
-      font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-    }
-    .formula-step .step-body {
-      font-size: 12px;
-      color: var(--mid);
-      line-height: 1.5;
-    }
 
     /* ── Main content ── */
     main {
@@ -422,33 +386,6 @@
   <p>A comparative index that weights engagement actions by behavioural intent and normalises performance against reach to assess how efficiently creators convert attention into meaningful audience action.</p>
 </div>
 
-<div class="formula-strip">
-  <div class="formula-step">
-    <div class="step-num">Step 1</div>
-    <div class="step-title">Assign Weights</div>
-    <div class="step-body">Share = 4 · Comment = 3 · Save = 2 · Like = 1</div>
-  </div>
-  <div class="formula-step">
-    <div class="step-num">Step 2</div>
-    <div class="step-title">Value Weighted Engagements</div>
-    <div class="step-body">(shares×4) + (comments×3) + (saves×2) + likes</div>
-  </div>
-  <div class="formula-step">
-    <div class="step-num">Step 3</div>
-    <div class="step-title">Normalise by Views</div>
-    <div class="step-body">Value weighted engagements ÷ views</div>
-  </div>
-  <div class="formula-step">
-    <div class="step-num">Step 4</div>
-    <div class="step-title">Create Score</div>
-    <div class="step-body">(Value weighted engagements ÷ views) × 10,000</div>
-  </div>
-  <div class="formula-step">
-    <div class="step-num">Step 5</div>
-    <div class="step-title">Cost per EVS</div>
-    <div class="step-body">Influencer cost ÷ EVS</div>
-  </div>
-</div>
 
 <main>
   <div class="upload-section">
