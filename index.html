@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Engagement Value Score — DEPT® / PepsiCo</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <style>
+    :root {
+      --blue: #1400ff;
+      --blue-light: #ebebff;
+      --dark: #0a0a0a;
+      --mid: #444;
+      --border: #ddd;
+      --bg: #f4f4f4;
+      --white: #ffffff;
+      --radius: 12px;
+      --font: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--dark);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--dark);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header .logo {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header .logo-dept {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+    header .logo-dept span {
+      color: var(--blue);
+    }
+    header .divider { width: 1px; height: 24px; background: #444; }
+    header .logo-client {
+      font-size: 13px;
+      font-weight: 600;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    header .badge {
+      background: var(--blue);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--dark);
+      padding: 48px 40px 56px;
+      border-bottom: 3px solid var(--blue);
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 900;
+      color: var(--white);
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      line-height: 1.05;
+      max-width: 700px;
+      margin-bottom: 16px;
+    }
+    .hero h1 em { color: var(--blue); font-style: normal; }
+    .hero p {
+      color: #aaa;
+      font-size: 16px;
+      max-width: 560px;
+      line-height: 1.6;
+    }
+
+    /* ── Formula strip ── */
+    .formula-strip {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+      overflow-x: auto;
+    }
+    .formula-step {
+      flex: 1;
+      min-width: 180px;
+      padding: 16px 20px;
+      border-right: 1px solid var(--border);
+    }
+    .formula-step:last-child { border-right: none; }
+    .formula-step .step-num {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--blue);
+      margin-bottom: 6px;
+    }
+    .formula-step .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .formula-step .step-body {
+      font-size: 12px;
+      color: var(--mid);
+      line-height: 1.5;
+    }
+
+    /* ── Main content ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Upload zone ── */
+    .upload-section { margin-bottom: 48px; }
+    .upload-zone {
+      border: 2px dashed var(--blue);
+      border-radius: var(--radius);
+      background: var(--white);
+      padding: 56px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      background: var(--blue-light);
+      border-color: var(--blue);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 16px;
+      background: var(--blue);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .upload-icon svg { fill: white; }
+    .upload-zone h2 {
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .upload-zone p { font-size: 14px; color: var(--mid); }
+    .upload-zone .file-types {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .upload-zone .file-types span {
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .upload-hint {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+    }
+    .upload-hint code {
+      background: #eee;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+
+    /* ── Error/success messages ── */
+    .message {
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .message.error { background: #fff0f0; border: 1px solid #ffb3b3; color: #cc0000; display: block; }
+    .message.success { background: #f0fff4; border: 1px solid #b3ffd1; color: #007a33; display: block; }
+
+    /* ── Results ── */
+    .results { display: none; }
+    .results.visible { display: block; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.3px;
+    }
+    .section-header h2 span { color: var(--blue); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-ghost { background: white; color: var(--dark); border: 1.5px solid var(--border); }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 48px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead tr { background: var(--dark); }
+    thead th {
+      color: white;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      padding: 14px 16px;
+      text-align: left;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th:hover { background: #222; }
+    thead th.sort-asc::after { content: ' ↑'; color: var(--blue); }
+    thead th.sort-desc::after { content: ' ↓'; color: var(--blue); }
+    thead th.highlight { color: #88aaff; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--blue-light); }
+    tbody td { padding: 12px 16px; white-space: nowrap; }
+    tbody td.name { font-weight: 700; }
+    tbody td.highlight {
+      font-weight: 800;
+      color: var(--blue);
+    }
+    tbody td.cost-per { color: #333; }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+    .rank-badge.top { background: var(--blue); color: white; }
+
+    /* ── Chart ── */
+    .chart-section { margin-bottom: 48px; }
+    .chart-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 32px;
+    }
+    .chart-card h3 {
+      font-size: 16px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.2px;
+      margin-bottom: 4px;
+    }
+    .chart-card .chart-sub {
+      font-size: 13px;
+      color: var(--mid);
+      margin-bottom: 24px;
+    }
+    .chart-container { position: relative; height: 520px; }
+
+    /* ── Quadrant labels ── */
+    .quadrant-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .q-label {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    .q-label strong { display: block; font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+    .q-label.best { background: #e8fff2; border: 1px solid #4ade80; color: #15803d; }
+    .q-label.good { background: #fffbe8; border: 1px solid #fde047; color: #854d0e; }
+    .q-label.review { background: #fff0f0; border: 1px solid #fca5a5; color: #991b1b; }
+    .q-label.avg { background: var(--blue-light); border: 1px solid #c7d2fe; color: var(--blue); }
+
+    /* ── Summary cards ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .summary-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .summary-card .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--mid);
+      margin-bottom: 6px;
+    }
+    .summary-card .card-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--blue);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .summary-card .card-sub {
+      font-size: 12px;
+      color: var(--mid);
+    }
+    .summary-card.dark {
+      background: var(--dark);
+      border-color: var(--dark);
+    }
+    .summary-card.dark .card-label { color: #aaa; }
+    .summary-card.dark .card-value { color: white; }
+    .summary-card.dark .card-sub { color: #888; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--dark);
+      padding: 24px 40px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+    }
+    footer strong { color: #aaa; }
+
+    @media (max-width: 640px) {
+      header { padding: 16px 20px; }
+      .hero { padding: 32px 20px 40px; }
+      main { padding: 24px 16px 60px; }
+      .formula-strip { padding: 16px 20px; }
+      .chart-card { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dept">DEPT<span>®</span></div>
+    <div class="divider"></div>
+    <div class="logo-client">PepsiCo</div>
+  </div>
+  <div class="badge">EVS Calculator</div>
+</header>
+
+<div class="hero">
+  <h1>Engagement <em>Value</em><br>Score Calculator</h1>
+  <p>A comparative index that weights engagement actions by behavioural intent and normalises performance against reach to assess how efficiently creators convert attention into meaningful audience action.</p>
+</div>
+
+<div class="formula-strip">
+  <div class="formula-step">
+    <div class="step-num">Step 1</div>
+    <div class="step-title">Assign Weights</div>
+    <div class="step-body">Share = 4 · Comment = 3 · Save = 2 · Like = 1</div>
+  </div>
+  <div class="formula-step">
+    <div class="step-num">Step 2</div>
+    <div class="step-title">Value Weighted Engagements</div>
+    <div class="step-body">(shares×4) + (comments×3) + (saves×2) + likes</div>
+  </div>
+  <div class="formula-step">
+    <div class="step-num">Step 3</div>
+    <div class="step-title">Normalise by Views</div>
+    <div class="step-body">Value weighted engagements ÷ views</div>
+  </div>
+  <div class="formula-step">
+    <div class="step-num">Step 4</div>
+    <div class="step-title">Create Score</div>
+    <div class="step-body">(Value weighted engagements ÷ views) × 10,000</div>
+  </div>
+  <div class="formula-step">
+    <div class="step-num">Step 5</div>
+    <div class="step-title">Cost per EVS</div>
+    <div class="step-body">Influencer cost ÷ EVS</div>
+  </div>
+</div>
+
+<main>
+  <div class="upload-section">
+    <div class="upload-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".csv,.tsv" />
+      <div class="upload-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+      </div>
+      <h2>Upload Influencer Data</h2>
+      <p>Drag & drop your CSV file here, or click to browse</p>
+      <div class="file-types"><span>CSV</span><span>TSV</span></div>
+    </div>
+    <p class="upload-hint">
+      Expected columns: <code>Influencer</code>, <code>Impressions</code>, <code>Likes</code>,
+      <code>Comments</code>, <code>Shares</code>, <code>Saves</code>, <code>Cost</code>
+      &nbsp;·&nbsp; Column names are flexible (case-insensitive)
+    </p>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <div class="results" id="results">
+
+    <div class="summary-grid" id="summaryGrid"></div>
+
+    <div class="section-header">
+      <h2>Results <span>Table</span></h2>
+      <button class="btn btn-primary" id="exportBtn" onclick="exportCSV()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Export CSV
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="resultsTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="chart-section">
+      <div class="section-header">
+        <h2>Quadrant <span>Chart</span></h2>
+        <button class="btn btn-ghost" onclick="resetZoom()">Reset View</button>
+      </div>
+      <div class="chart-card">
+        <h3>EVS vs Cost per EVS</h3>
+        <p class="chart-sub">Best performers: high EVS (right) + low cost per EVS (bottom)</p>
+        <div class="chart-container">
+          <canvas id="quadrantChart"></canvas>
+        </div>
+        <div class="quadrant-legend">
+          <div class="q-label best"><strong>⬇ Right — Star Performers</strong>High EVS, low cost. Best value creators.</div>
+          <div class="q-label good"><strong>⬆ Right — High Reach, Higher Cost</strong>Strong engagement but expensive. Review ROI.</div>
+          <div class="q-label avg"><strong>⬇ Left — Efficient but Lower Scale</strong>Low cost, lower EVS. Good for budget campaigns.</div>
+          <div class="q-label review"><strong>⬆ Left — Underperformers</strong>Low EVS, high cost. Prioritise review.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <strong>DEPT® / PepsiCo</strong> — Engagement Value Score Calculator &nbsp;·&nbsp; Confidential
+</footer>
+
+<script>
+// ── State ──
+let currentData = [];
+let sortCol = null;
+let sortDir = 1;
+let chart = null;
+
+// ── Drag & drop ──
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+// ── Column aliases ──
+const ALIASES = {
+  influencer: ['influencer', 'creator', 'name', 'handle', 'account'],
+  impressions: ['impressions', 'views', 'reach', 'video views'],
+  likes:       ['likes', 'like'],
+  comments:    ['comments', 'comment'],
+  shares:      ['shares', 'share'],
+  saves:       ['saves', 'save'],
+  cost:        ['cost', 'fee', 'spend', 'rate', 'price'],
+};
+
+function resolveColumns(headers) {
+  const lower = headers.map(h => h.toLowerCase().trim());
+  const map = {};
+  for (const [key, aliases] of Object.entries(ALIASES)) {
+    const idx = lower.findIndex(h => aliases.some(a => h.includes(a)));
+    if (idx !== -1) map[key] = idx;
+  }
+  return map;
+}
+
+// ── Parse number from string (handles £, commas, %) ──
+function parseNum(str) {
+  if (str === null || str === undefined) return 0;
+  const cleaned = String(str).replace(/[£$€,%]/g, '').replace(/,/g, '').trim();
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+// ── File handling ──
+function handleFile(file) {
+  showMessage('');
+  Papa.parse(file, {
+    header: false,
+    skipEmptyLines: true,
+    complete: ({ data }) => {
+      if (!data || data.length < 2) {
+        showMessage('File appears to be empty or unreadable.', 'error');
+        return;
+      }
+      processData(data);
+    },
+    error: (err) => showMessage('Could not parse file: ' + err.message, 'error'),
+  });
+}
+
+function processData(rows) {
+  const headers = rows[0];
+  const colMap = resolveColumns(headers);
+
+  const required = ['influencer', 'impressions', 'likes'];
+  const missing = required.filter(k => colMap[k] === undefined);
+  if (missing.length) {
+    showMessage(`Could not find required columns: ${missing.join(', ')}. Please check your file headers.`, 'error');
+    return;
+  }
+
+  const results = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const name       = String(row[colMap.influencer] || '').trim();
+    if (!name) continue;
+    const impressions = parseNum(row[colMap.impressions]);
+    const likes       = parseNum(row[colMap.likes]);
+    const comments    = colMap.comments !== undefined ? parseNum(row[colMap.comments]) : 0;
+    const shares      = colMap.shares   !== undefined ? parseNum(row[colMap.shares])   : 0;
+    const saves       = colMap.saves    !== undefined ? parseNum(row[colMap.saves])    : 0;
+    const cost        = colMap.cost     !== undefined ? parseNum(row[colMap.cost])     : null;
+
+    const vwe = (shares * 4) + (comments * 3) + (saves * 2) + likes;
+    const evs = impressions > 0 ? (vwe / impressions) * 10000 : 0;
+    const costPerEvs = (cost !== null && cost > 0 && evs > 0) ? cost / evs : null;
+
+    results.push({ name, impressions, likes, comments, shares, saves, cost, vwe, evs, costPerEvs });
+  }
+
+  if (!results.length) {
+    showMessage('No valid rows found in the file.', 'error');
+    return;
+  }
+
+  showMessage(`Successfully loaded ${results.length} influencers.`, 'success');
+  currentData = results;
+  sortCol = 'evs';
+  sortDir = -1;
+  render();
+}
+
+// ── Render ──
+function render() {
+  const data = getSorted();
+  renderSummary(data);
+  renderTable(data);
+  renderChart(data);
+  document.getElementById('results').classList.add('visible');
+}
+
+function getSorted() {
+  if (!sortCol) return [...currentData];
+  return [...currentData].sort((a, b) => {
+    const va = a[sortCol] ?? -Infinity;
+    const vb = b[sortCol] ?? -Infinity;
+    if (typeof va === 'string') return va.localeCompare(vb) * sortDir;
+    return (va - vb) * sortDir;
+  });
+}
+
+// ── Summary ──
+function renderSummary(data) {
+  const evsList = data.map(d => d.evs).filter(v => v > 0);
+  const cpList  = data.map(d => d.costPerEvs).filter(v => v !== null && v > 0);
+  const avgEvs  = evsList.length ? evsList.reduce((a, b) => a + b, 0) / evsList.length : 0;
+  const avgCp   = cpList.length  ? cpList.reduce((a, b) => a + b, 0)  / cpList.length  : 0;
+  const best    = [...data].sort((a, b) => b.evs - a.evs)[0];
+  const bestCp  = cpList.length ? [...data].filter(d => d.costPerEvs !== null).sort((a, b) => a.costPerEvs - b.costPerEvs)[0] : null;
+
+  const hasCost = cpList.length > 0;
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-card">
+      <div class="card-label">Creators Analysed</div>
+      <div class="card-value">${data.length}</div>
+      <div class="card-sub">from uploaded file</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-label">Average EVS</div>
+      <div class="card-value">${fmt(avgEvs)}</div>
+      <div class="card-sub">across all creators</div>
+    </div>
+    ${hasCost ? `
+    <div class="summary-card">
+      <div class="card-label">Average Cost per EVS</div>
+      <div class="card-value">${fmtCost(avgCp)}</div>
+      <div class="card-sub">across all creators</div>
+    </div>` : ''}
+    <div class="summary-card dark">
+      <div class="card-label">Top EVS Creator</div>
+      <div class="card-value" style="font-size:20px">${best ? best.name : '—'}</div>
+      <div class="card-sub">EVS: ${best ? fmt(best.evs) : '—'}</div>
+    </div>
+    ${hasCost && bestCp ? `
+    <div class="summary-card dark">
+      <div class="card-label">Best Cost Efficiency</div>
+      <div class="card-value" style="font-size:20px">${bestCp.name}</div>
+      <div class="card-sub">Cost/EVS: ${fmtCost(bestCp.costPerEvs)}</div>
+    </div>` : ''}
+  `;
+}
+
+// ── Table ──
+function renderTable(data) {
+  const hasCost = data.some(d => d.costPerEvs !== null);
+  const cols = [
+    { key: 'rank',       label: '#',              fmt: (_, i) => `<span class="rank-badge ${i < 3 ? 'top' : ''}">${i+1}</span>`, nosort: true },
+    { key: 'name',       label: 'Creator',        fmt: v => `<span class="name">${esc(v)}</span>` },
+    { key: 'impressions',label: 'Impressions',    fmt: v => fmtInt(v) },
+    { key: 'likes',      label: 'Likes',          fmt: v => fmtInt(v) },
+    { key: 'comments',   label: 'Comments',       fmt: v => fmtInt(v) },
+    { key: 'shares',     label: 'Shares',         fmt: v => fmtInt(v) },
+    { key: 'saves',      label: 'Saves',          fmt: v => fmtInt(v) },
+    ...(hasCost ? [{ key: 'cost', label: 'Cost', fmt: v => v !== null ? `£${fmtInt(v)}` : '—' }] : []),
+    { key: 'vwe',        label: 'Value Weighted Eng.', fmt: v => fmtInt(v) },
+    { key: 'evs',        label: 'EVS',            fmt: v => `<span class="highlight">${fmt(v)}</span>`, highlight: true },
+    ...(hasCost ? [{ key: 'costPerEvs', label: 'Cost per EVS', fmt: v => v !== null ? `<span class="cost-per">${fmtCost(v)}</span>` : '—', highlight: true }] : []),
+  ];
+
+  document.getElementById('tableHead').innerHTML = `<tr>${cols.map(c => {
+    const cls = [c.highlight ? 'highlight' : '', sortCol === c.key ? (sortDir === 1 ? 'sort-asc' : 'sort-desc') : ''].filter(Boolean).join(' ');
+    return `<th class="${cls}" ${c.nosort ? '' : `onclick="sortBy('${c.key}')"`}>${c.label}</th>`;
+  }).join('')}</tr>`;
+
+  document.getElementById('tableBody').innerHTML = data.map((row, i) =>
+    `<tr>${cols.map(c => `<td>${c.fmt(row[c.key], i)}</td>`).join('')}</tr>`
+  ).join('');
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = col === 'costPerEvs' ? 1 : -1; }
+  const data = getSorted();
+  renderTable(data);
+  renderSummary(data);
+}
+
+// ── Chart ──
+function renderChart(data) {
+  const hasCost = data.some(d => d.costPerEvs !== null);
+  const plotData = hasCost
+    ? data.filter(d => d.costPerEvs !== null && d.evs > 0)
+    : data.filter(d => d.evs > 0);
+
+  const evsList  = plotData.map(d => d.evs);
+  const cpList   = hasCost ? plotData.map(d => d.costPerEvs) : [];
+
+  const midEvs = median(evsList);
+  const midCp  = hasCost ? median(cpList) : null;
+
+  const COLORS = [
+    '#1400ff','#e53e3e','#38a169','#d69e2e','#805ad5',
+    '#dd6b20','#2b6cb0','#b83280','#285e61','#744210',
+    '#2d3748','#553c9a',
+  ];
+
+  const datasets = plotData.map((d, i) => ({
+    label: d.name,
+    data: [{ x: d.evs, y: hasCost ? d.costPerEvs : 0 }],
+    backgroundColor: COLORS[i % COLORS.length] + 'cc',
+    borderColor: COLORS[i % COLORS.length],
+    borderWidth: 2,
+    pointRadius: 10,
+    pointHoverRadius: 13,
+  }));
+
+  const annotations = {};
+
+  if (hasCost && midEvs && midCp) {
+    annotations.vLine = {
+      type: 'line', scaleID: 'x', value: midEvs,
+      borderColor: '#1400ff', borderWidth: 1.5, borderDash: [6, 4],
+      label: { display: true, content: `Median EVS: ${fmt(midEvs)}`, position: 'start', backgroundColor: '#1400ff', color: 'white', font: { size: 10, weight: 'bold' }, padding: 4 },
+    };
+    annotations.hLine = {
+      type: 'line', scaleID: 'y', value: midCp,
+      borderColor: '#1400ff', borderWidth: 1.5, borderDash: [6, 4],
+      label: { display: true, content: `Median cost/EVS: ${fmtCost(midCp)}`, position: 'end', backgroundColor: '#1400ff', color: 'white', font: { size: 10, weight: 'bold' }, padding: 4 },
+    };
+  }
+
+  if (chart) chart.destroy();
+
+  const ctx = document.getElementById('quadrantChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: true },
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { size: 11, weight: 'bold' }, padding: 12, usePointStyle: true, pointStyleWidth: 10 },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = plotData[ctx.datasetIndex];
+              const lines = [`${d.name}`, `EVS: ${fmt(d.evs)}`];
+              if (hasCost && d.costPerEvs !== null) lines.push(`Cost/EVS: ${fmtCost(d.costPerEvs)}`);
+              if (d.cost) lines.push(`Cost: £${fmtInt(d.cost)}`);
+              return lines;
+            },
+          },
+          backgroundColor: '#0a0a0a',
+          titleColor: '#ffffff',
+          bodyColor: '#cccccc',
+          padding: 12,
+          cornerRadius: 8,
+        },
+        annotation: { annotations },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Engagement Value Score (EVS)',
+            font: { size: 12, weight: 'bold' },
+            color: '#444',
+          },
+          grid: { color: '#f0f0f0' },
+          ticks: { font: { size: 11 }, color: '#666' },
+        },
+        y: {
+          title: {
+            display: true,
+            text: hasCost ? 'Cost per EVS (£)' : '(no cost data)',
+            font: { size: 12, weight: 'bold' },
+            color: '#444',
+          },
+          grid: { color: '#f0f0f0' },
+          ticks: {
+            font: { size: 11 },
+            color: '#666',
+            callback: v => hasCost ? `£${v}` : v,
+          },
+        },
+      },
+    },
+    plugins: [ChartAnnotation],
+  });
+}
+
+function resetZoom() {
+  if (chart) { chart.resetZoom && chart.resetZoom(); }
+}
+
+// ── Export ──
+function exportCSV() {
+  if (!currentData.length) return;
+  const data = getSorted();
+  const hasCost = data.some(d => d.costPerEvs !== null);
+  const headers = ['Creator','Impressions','Likes','Comments','Shares','Saves', ...(hasCost ? ['Cost'] : []), 'Value Weighted Engagements','EVS', ...(hasCost ? ['Cost per EVS'] : [])];
+  const rows = data.map(d => [
+    d.name, d.impressions, d.likes, d.comments, d.shares, d.saves,
+    ...(hasCost ? [d.cost !== null ? d.cost : ''] : []),
+    d.vwe, d.evs.toFixed(2),
+    ...(hasCost ? [d.costPerEvs !== null ? d.costPerEvs.toFixed(2) : ''] : []),
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'evs-results.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Helpers ──
+function showMessage(msg, type) {
+  const el = document.getElementById('message');
+  el.textContent = msg;
+  el.className = 'message' + (type ? ' ' + type : '');
+  if (!type) el.style.display = 'none';
+}
+
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  return Math.round(n).toLocaleString();
+}
+function fmtInt(n) {
+  if (n === null || n === undefined) return '—';
+  return Math.round(n).toLocaleString();
+}
+function fmtCost(n) {
+  if (n === null || n === undefined) return '—';
+  if (n >= 1000) return `£${(n/1000).toFixed(1)}k`;
+  if (n >= 100) return `£${Math.round(n)}`;
+  return `£${n.toFixed(2)}`;
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function median(arr) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+// Reference the annotation plugin
+const ChartAnnotation = window['chartjs-plugin-annotation'];
+</script>
+</body>
+</html>
