@@ -803,8 +803,472 @@ function updateStatusPills() {
       </div>`).join('');
 }
 
-// Stub — rendering added in next step
-function renderDashboard() {}
+// ── Chart registry ─────────────────────────────────────────────────────────
+const charts = {};
+
+function destroyCharts() {
+  Object.values(charts).forEach(c => c && c.destroy());
+  Object.keys(charts).forEach(k => delete charts[k]);
+}
+
+// ── Render dispatcher ──────────────────────────────────────────────────────
+function renderDashboard() {
+  destroyCharts();
+  const el = document.getElementById('dashboardContent');
+  const v  = state.view;
+  if      (v === 'cross')     renderCross(el);
+  else if (v === 'google')    renderPlatform(el, 'google',    state.google);
+  else if (v === 'tiktok')    renderPlatform(el, 'tiktok',    state.tiktok);
+  else if (v === 'pinterest') renderPlatform(el, 'pinterest', state.pinterest);
+}
+
+// ── Cross-platform view ────────────────────────────────────────────────────
+function renderCross(el) {
+  const cross   = analyzeCross();
+  const loaded  = ['google','tiktok','pinterest'].filter(p => state[p]);
+  const multi   = cross.filter(d => d.platforms.length > 1);
+  const top     = cross[0];
+  const emerging= cross.filter(d => d.avgGrowth > 20).slice(0, 6);
+
+  el.innerHTML = `
+    <div class="section-hd">
+      <div>
+        <div class="section-title">Cross-Platform <em>Overview</em></div>
+        <div class="section-sub">${loaded.length} platform${loaded.length !== 1 ? 's' : ''} loaded · ${cross.length} trends detected</div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Trends Detected</div>
+        <div class="stat-value">${cross.length}</div>
+        <div class="stat-sub">across ${loaded.length} platform${loaded.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cross-Platform</div>
+        <div class="stat-value">${multi.length}</div>
+        <div class="stat-sub">on 2+ platforms</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="stat-label">Top Trend</div>
+        <div class="stat-value" style="font-size:18px">${top ? cap(top.keyword) : '—'}</div>
+        <div class="stat-sub">${top ? top.platforms.map(p => PLAT[p].label).join(' · ') : ''}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Emerging (&gt;20% growth)</div>
+        <div class="stat-value">${emerging.length}</div>
+        <div class="stat-sub">high-velocity trends</div>
+      </div>
+    </div>
+
+    <div class="chart-row" id="crossCharts">
+      <div class="chart-card">
+        <h3>Momentum Score — Top 10</h3>
+        <p class="chart-desc">Cross-platform score combining presence and growth rate</p>
+        <div class="chart-wrap" style="height:300px"><canvas id="cMomentumChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Platform Presence</h3>
+        <p class="chart-desc">Which trends appear across multiple platforms simultaneously</p>
+        <div class="chart-wrap" style="height:300px"><canvas id="cPresenceChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <div class="section-hd">
+        <div>
+          <div class="section-title">Trend <em>Intelligence</em> Table</div>
+          <div class="section-sub">All trends ranked by cross-platform momentum</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>Trend</th>
+            <th>Platforms</th>
+            <th>Avg Growth</th>
+            <th>Momentum</th>
+            ${state.google    ? '<th>Google</th>'    : ''}
+            ${state.tiktok    ? '<th>TikTok</th>'    : ''}
+            ${state.pinterest ? '<th>Pinterest</th>' : ''}
+          </tr></thead>
+          <tbody>
+            ${cross.slice(0, 25).map((d, i) => `
+              <tr>
+                <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
+                <td class="td-bold">${cap(d.keyword)}</td>
+                <td>${d.platforms.map(p => `<span class="ptag ${p}">${PLAT[p].label}</span>`).join('')}</td>
+                <td>${growthBadge(d.avgGrowth)}</td>
+                <td>
+                  <div class="momentum-bar">
+                    <div class="momentum-fill" style="width:${Math.min(d.momentum, 100)}px"></div>
+                    <span class="momentum-num">${Math.round(d.momentum)}</span>
+                  </div>
+                </td>
+                ${state.google    ? `<td>${d.scores.google    !== undefined ? Math.round(d.scores.google)         : '<span style="color:#ccc">—</span>'}</td>` : ''}
+                ${state.tiktok    ? `<td>${d.scores.tiktok    !== undefined ? fmtCompact(d.scores.tiktok)         : '<span style="color:#ccc">—</span>'}</td>` : ''}
+                ${state.pinterest ? `<td>${d.scores.pinterest !== undefined ? Math.round(d.scores.pinterest)      : '<span style="color:#ccc">—</span>'}</td>` : ''}
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="insights-card">
+      <div class="insights-hd"><div class="insights-icon">📊</div><h3>Key Insights</h3></div>
+      <div class="insights-body" id="crossInsights"></div>
+    </div>`;
+
+  setTimeout(() => {
+    chartMomentum('cMomentumChart', cross.slice(0, 10));
+    chartPresence('cPresenceChart', multi.length ? multi.slice(0, 8) : cross.slice(0, 8));
+  }, 50);
+}
+
+// ── Platform-specific view ─────────────────────────────────────────────────
+function renderPlatform(el, platform, data) {
+  if (!data) {
+    el.innerHTML = `<div class="empty-state"><h3>No ${PLAT[platform].label} data loaded</h3><p>Upload a ${PLAT[platform].label} CSV file above to see platform insights.</p></div>`;
+    return;
+  }
+  if (data.type === 'timeseries') renderTimeseries(el, platform, data);
+  else                            renderRanking(el, platform, data);
+}
+
+// Timeseries view (Google / Pinterest / TikTok timeseries)
+function renderTimeseries(el, platform, data) {
+  const stats = analyzeTimeSeries(data);
+  if (!stats) { el.innerHTML = '<div class="empty-state"><h3>Could not analyse data</h3></div>'; return; }
+
+  const byLatest  = [...data.keywords].filter(k => stats[k]).sort((a, b) => (stats[b].latest  || 0) - (stats[a].latest  || 0));
+  const byGrowth  = [...data.keywords].filter(k => stats[k]).sort((a, b) => (stats[b].growth  || 0) - (stats[a].growth  || 0));
+  const top       = byLatest[0];
+  const fastest   = byGrowth[0];
+
+  el.innerHTML = `
+    <div class="section-hd">
+      <div>
+        <div class="section-title">${PLAT[platform].label} <em>Trends</em></div>
+        <div class="section-sub">${data.keywords.length} keywords · ${data.series.length} time periods</div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Keywords Tracked</div>
+        <div class="stat-value">${data.keywords.length}</div>
+        <div class="stat-sub">${data.series.length} data points</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="stat-label">Top Keyword</div>
+        <div class="stat-value" style="font-size:18px">${cap(top)}</div>
+        <div class="stat-sub">Interest: ${Math.round(stats[top]?.latest || 0)}/100</div>
+      </div>
+      <div class="stat-card dark">
+        <div class="stat-label">Fastest Growing</div>
+        <div class="stat-value" style="font-size:18px">${cap(fastest)}</div>
+        <div class="stat-sub">+${Math.round(stats[fastest]?.growth || 0)}% over period</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Peak Interest</div>
+        <div class="stat-value">${Math.max(...data.keywords.map(k => stats[k]?.peak || 0)).toFixed(0)}</div>
+        <div class="stat-sub">highest recorded value</div>
+      </div>
+    </div>
+
+    <div class="chart-row single">
+      <div class="chart-card">
+        <h3>Interest Over Time</h3>
+        <p class="chart-desc">Search / interest score (0–100) across the selected period</p>
+        <div class="chart-wrap" style="height:320px"><canvas id="pLineChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3>Latest Interest Score</h3>
+        <p class="chart-desc">Most recent data point per keyword</p>
+        <div class="chart-wrap" style="height:260px"><canvas id="pLatestChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Growth Over Period</h3>
+        <p class="chart-desc">Change from first to last data point</p>
+        <div class="chart-wrap" style="height:260px"><canvas id="pGrowthChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <div class="section-hd"><div class="section-title">Keyword <em>Breakdown</em></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Keyword</th><th>Latest</th><th>Peak</th><th>Average</th><th>Growth</th><th>Momentum</th>
+          </tr></thead>
+          <tbody>
+            ${byLatest.map((kw, i) => {
+              const s = stats[kw]; if (!s) return '';
+              return `<tr>
+                <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
+                <td class="td-bold">${cap(kw)}</td>
+                <td class="td-green">${Math.round(s.latest)}</td>
+                <td>${Math.round(s.peak)}</td>
+                <td>${s.avg.toFixed(1)}</td>
+                <td>${growthBadge(s.growth)}</td>
+                <td>${s.momentum > 5 ? '<span class="badge-accel">Accelerating</span>' : s.momentum < -5 ? '<span class="badge-decel">Decelerating</span>' : '<span class="badge-flat">Stable</span>'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="insights-card">
+      <div class="insights-hd"><div class="insights-icon">💡</div><h3>${PLAT[platform].label} Insights</h3></div>
+      <div class="insights-body" id="platInsights"></div>
+    </div>`;
+
+  setTimeout(() => {
+    chartLine('pLineChart', data, stats);
+    chartLatest('pLatestChart', byLatest, stats);
+    chartGrowth('pGrowthChart', byGrowth, stats);
+  }, 50);
+}
+
+// Ranking view (TikTok hashtag tables)
+function renderRanking(el, platform, data) {
+  const { topics } = data;
+  const byViews  = [...topics].filter(t => t.views  !== null).sort((a, b) => b.views  - a.views);
+  const byGrowth = [...topics].filter(t => t.growth !== null).sort((a, b) => b.growth - a.growth);
+  const avgGrowth = byGrowth.length ? byGrowth.reduce((s, t) => s + t.growth, 0) / byGrowth.length : null;
+
+  el.innerHTML = `
+    <div class="section-hd">
+      <div>
+        <div class="section-title">${PLAT[platform].label} <em>Trends</em></div>
+        <div class="section-sub">${topics.length} trending topics</div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Topics Tracked</div>
+        <div class="stat-value">${topics.length}</div>
+        <div class="stat-sub">from uploaded file</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="stat-label">#1 by Volume</div>
+        <div class="stat-value" style="font-size:18px">${byViews[0] ? cap(byViews[0].name) : '—'}</div>
+        <div class="stat-sub">${byViews[0]?.views !== null ? fmtCompact(byViews[0].views) + ' views' : ''}</div>
+      </div>
+      <div class="stat-card dark">
+        <div class="stat-label">Fastest Growing</div>
+        <div class="stat-value" style="font-size:18px">${byGrowth[0] ? cap(byGrowth[0].name) : '—'}</div>
+        <div class="stat-sub">${byGrowth[0]?.growth !== null ? '+' + byGrowth[0].growth.toFixed(0) + '% growth' : ''}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Growth Rate</div>
+        <div class="stat-value">${avgGrowth !== null ? '+' + avgGrowth.toFixed(0) + '%' : '—'}</div>
+        <div class="stat-sub">across all topics</div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      ${byViews.length  ? `<div class="chart-card"><h3>Views by Topic</h3><p class="chart-desc">Total accumulated views</p><div class="chart-wrap" style="height:300px"><canvas id="rViewsChart"></canvas></div></div>` : ''}
+      ${byGrowth.length ? `<div class="chart-card"><h3>Growth Rate by Topic</h3><p class="chart-desc">Period growth percentage</p><div class="chart-wrap" style="height:300px"><canvas id="rGrowthChart"></canvas></div></div>` : ''}
+    </div>
+
+    <div class="table-section">
+      <div class="section-hd"><div class="section-title">Trending <em>Topics</em></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Rank</th><th>Hashtag / Topic</th>
+            ${byViews.length  ? '<th>Total Views</th>' : ''}
+            ${byGrowth.length ? '<th>Growth</th>'      : ''}
+            ${topics.some(t => t.posts !== null) ? '<th>Posts</th>' : ''}
+          </tr></thead>
+          <tbody>
+            ${byViews.map((t, i) => `<tr>
+              <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
+              <td class="td-bold">#${cap(t.name)}</td>
+              ${byViews.length  ? `<td class="td-green">${fmtCompact(t.views)}</td>` : ''}
+              ${byGrowth.length ? `<td>${t.growth !== null ? growthBadge(t.growth) : '—'}</td>` : ''}
+              ${topics.some(x => x.posts !== null) ? `<td>${t.posts !== null ? fmtCompact(t.posts) : '—'}</td>` : ''}
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="insights-card">
+      <div class="insights-hd"><div class="insights-icon">💡</div><h3>${PLAT[platform].label} Insights</h3></div>
+      <div class="insights-body" id="platInsights"></div>
+    </div>`;
+
+  setTimeout(() => {
+    if (byViews.length)  chartRankingViews('rViewsChart',   byViews.slice(0, 10),  PLAT[platform].color);
+    if (byGrowth.length) chartRankingGrowth('rGrowthChart', byGrowth.slice(0, 10), PLAT[platform].color);
+  }, 50);
+}
+
+// ── Chart renderers ────────────────────────────────────────────────────────
+
+const SERIES_COLORS = ['#007A33','#4285F4','#E60023','#FF6B00','#805AD5','#2B6CB0','#D69E2E','#C05621','#2D3748','#553C9A'];
+
+function chartLine(id, data, stats) {
+  const ctx = document.getElementById(id); if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.series.map(s => dateLbl(s.date)),
+      datasets: data.keywords.map((kw, i) => ({
+        label: cap(kw),
+        data: data.series.map(s => s.values[kw]),
+        borderColor: SERIES_COLORS[i % SERIES_COLORS.length],
+        backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length] + '12',
+        borderWidth: 2,
+        pointRadius: data.series.length > 20 ? 0 : 3,
+        tension: 0.35, fill: false, spanGaps: true,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, usePointStyle: true } },
+        tooltip: { mode: 'index', intersect: false, ...darkTooltip() },
+      },
+      scales: {
+        x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, maxRotation: 45, maxTicksLimit: 12 } },
+        y: { min: 0, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } }, title: { display: true, text: 'Interest (0–100)', font: { size: 11 }, color: '#888' } },
+      },
+    },
+  });
+}
+
+function chartLatest(id, keywords, stats) {
+  const ctx = document.getElementById(id); if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: keywords.map(k => cap(k)),
+      datasets: [{ data: keywords.map(k => Math.round(stats[k]?.latest || 0)), backgroundColor: keywords.map((_, i) => i === 0 ? '#007A33' : i < 3 ? '#4ade80' : '#d1fae5'), borderRadius: 6 }],
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 30 } }, y: { min: 0, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } } } },
+  });
+}
+
+function chartGrowth(id, keywords, stats) {
+  const ctx = document.getElementById(id); if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: keywords.map(k => cap(k)),
+      datasets: [{ data: keywords.map(k => parseFloat((stats[k]?.growth || 0).toFixed(1))), backgroundColor: keywords.map(k => (stats[k]?.growth || 0) >= 0 ? '#007A33' : '#E60023'), borderRadius: 6 }],
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 30 } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => v + '%' } } } },
+  });
+}
+
+function chartMomentum(id, data) {
+  const ctx = document.getElementById(id); if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => cap(d.keyword)),
+      datasets: [{ data: data.map(d => Math.round(d.momentum)), backgroundColor: data.map((_, i) => i === 0 ? '#007A33' : i < 3 ? '#4ade80' : '#d1fae5'), borderRadius: 6 }],
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `Score: ${ctx.raw} · ${data[ctx.dataIndex].platforms.map(p => PLAT[p].label).join(', ')}` } } },
+      scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } }, y: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
+    },
+  });
+}
+
+function chartPresence(id, data) {
+  const ctx = document.getElementById(id); if (!ctx) return;
+  const loaded = ['google','tiktok','pinterest'].filter(p => state[p]);
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => cap(d.keyword)),
+      datasets: loaded.map(p => ({
+        label: PLAT[p].label,
+        data: data.map(d => d.platforms.includes(p) ? 1 : 0),
+        backgroundColor: PLAT[p].color,
+        borderRadius: 3,
+      })),
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw ? 'Trending' : 'Not detected'}` } } },
+      scales: { x: { stacked: true, display: false, max: loaded.length }, y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
+    },
+  });
+}
+
+function chartRankingViews(id, topics, color) {
+  const ctx = document.getElementById(id); if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: topics.map(t => '#' + cap(t.name)),
+      datasets: [{ data: topics.map(t => t.views || 0), backgroundColor: topics.map((_, i) => i === 0 ? color : color + '88'), borderRadius: 6 }],
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, callback: v => fmtCompact(v) } }, y: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
+    },
+  });
+}
+
+function chartRankingGrowth(id, topics, color) {
+  const ctx = document.getElementById(id); if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: topics.map(t => '#' + cap(t.name)),
+      datasets: [{ data: topics.map(t => t.growth || 0), backgroundColor: topics.map(t => (t.growth || 0) >= 0 ? color : '#E60023'), borderRadius: 6 }],
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, callback: v => v + '%' } }, y: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
+    },
+  });
+}
+
+// ── Shared chart helpers ───────────────────────────────────────────────────
+function darkTooltip() {
+  return { backgroundColor: '#0a0a0a', titleColor: '#fff', bodyColor: '#ccc', padding: 12, cornerRadius: 8 };
+}
+
+function dateLbl(date) {
+  return date ? date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+}
+
+// ── Display helpers ────────────────────────────────────────────────────────
+function cap(s) {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function growthBadge(g) {
+  if (g === null || g === undefined) return '<span class="badge-flat">—</span>';
+  if (g > 0)  return `<span class="badge-up">+${g.toFixed(0)}%</span>`;
+  if (g < 0)  return `<span class="badge-down">${g.toFixed(0)}%</span>`;
+  return '<span class="badge-flat">Flat</span>';
+}
+
+function fmtCompact(n) {
+  if (n === null || n === undefined) return '—';
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString();
+}
 </script>
 </body>
 </html>
