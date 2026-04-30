@@ -691,35 +691,53 @@ function parseTikTok(rows) {
 function parsePinterest(rows) {
   let hi = -1;
   for (let i = 0; i < rows.length; i++) {
-    const cells = rows[i].map(c => (c || '').toLowerCase().trim());
-    // Require BOTH 'trend' AND a structural metric column to avoid matching metadata rows
-    const hasTrend  = cells.includes('trend');
-    const hasMetric = cells.some(c => c === 'rank' || c.includes('weekly') || c.includes('normalised') || c.includes('normalized') || c.includes('volume'));
+    const cells = rows[i].map(c => (c || '').toLowerCase().replace(/^﻿/, '').trim());
+    const hasTrend  = cells.some(c => c === 'trend');
+    const hasMetric = cells.some(c => c === 'rank' || c.includes('weekly') || c.includes('normalised') || c.includes('normalized') || c.includes('volume') || c.includes('change'));
     if (hasTrend && hasMetric) { hi = i; break; }
   }
-  if (hi < 0) return null;
-  const h       = rows[hi].map(c => (c || '').toLowerCase().trim());
-  const rankCol = h.findIndex(c => c === 'rank');
-  const trendCol= h.findIndex(c => c === 'trend');
-  const volCol  = h.findIndex(c => c.includes('normalised') || c.includes('normalized') || (c.includes('volume') && !c.includes('change')));
-  const wkCol   = h.findIndex(c => c.includes('weekly'));
-  const moCol   = h.findIndex(c => c.includes('monthly'));
-  const yrCol   = h.findIndex(c => c.includes('yearly'));
+  if (hi < 0) { console.warn('[Pinterest] header row not found. First 5 rows:', rows.slice(0,5)); return null; }
+
+  // Strip BOM from all header cells
+  const h       = rows[hi].map(c => (c || '').toLowerCase().replace(/^﻿/, '').trim());
+  console.log('[Pinterest] header row', hi, '→', h);
+
+  const rankCol  = h.findIndex(c => c === 'rank' || c.replace(/^﻿/, '') === 'rank');
+  const trendCol = h.findIndex(c => c === 'trend');
+  // Volume: try many name patterns, then fall back to position trendCol+1
+  let volCol = h.findIndex(c =>
+    c.includes('normalised') || c.includes('normalized') ||
+    c === 'volume' || c === 'vol' ||
+    (c.includes('volume') && !c.includes('change')) ||
+    c.includes('search vol') || c.includes('index') || c.includes('score')
+  );
+  if (volCol < 0 && trendCol >= 0 && h.length > trendCol + 1) volCol = trendCol + 1;
+
+  const wkCol = h.findIndex(c => c.includes('weekly') || c.includes('week'));
+  const moCol = h.findIndex(c => c.includes('monthly') || c.includes('month'));
+  const yrCol = h.findIndex(c => c.includes('yearly') || c.includes('annual') || c.includes('year'));
+
+  console.log('[Pinterest] cols → rank:', rankCol, 'trend:', trendCol, 'vol:', volCol, 'wk:', wkCol, 'mo:', moCol, 'yr:', yrCol);
   if (trendCol < 0) return null;
+
   const terms = [];
   for (let i = hi + 1; i < rows.length; i++) {
     const r    = rows[i];
     const term = (r?.[trendCol] || '').trim();
     if (!term || /^data in the/i.test(term)) continue;
+    const rawVol = volCol >= 0 ? r[volCol] : null;
+    const nv     = safeNum(rawVol);
+    if (i === hi + 1) console.log('[Pinterest] first data row:', r, '→ rawVol:', rawVol, '→ normVolume:', nv);
     terms.push({
       term,
       rank:          rankCol >= 0 ? (parseInt(r[rankCol]) || terms.length + 1) : terms.length + 1,
-      normVolume:    volCol  >= 0 ? safeNum(r[volCol])    : null,
-      weeklyChange:  wkCol   >= 0 ? parseGrowth(r[wkCol])  : null,
-      monthlyChange: moCol   >= 0 ? parseGrowth(r[moCol])  : null,
-      yearlyChange:  yrCol   >= 0 ? parseGrowth(r[yrCol])  : null,
+      normVolume:    nv,
+      weeklyChange:  wkCol >= 0 ? parseGrowth(r[wkCol])  : null,
+      monthlyChange: moCol >= 0 ? parseGrowth(r[moCol])  : null,
+      yearlyChange:  yrCol >= 0 ? parseGrowth(r[yrCol])  : null,
     });
   }
+  console.log('[Pinterest] parsed', terms.length, 'terms, sample:', terms[0]);
   return terms.length ? { type: 'keyword_list', platform: 'pinterest', terms } : null;
 }
 
@@ -910,6 +928,7 @@ function renderGoogle(el) {
     return (b.change || 0) - (a.change || 0);
   });
   const breakoutCount = rising.filter(t => t.isBreakout).length;
+  const predicted = predictPlatformTrend('google');
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -921,6 +940,7 @@ function renderGoogle(el) {
       ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 Top Query</div><div class="stat-value" style="font-size:18px">${cap(topS[0].query)}</div><div class="stat-sub">Interest: ${topS[0].searchInterest}</div></div>` : ''}
       ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">#1 Rising Query</div><div class="stat-value" style="font-size:18px">${cap(riseS[0].query)}</div><div class="stat-sub">${riseS[0].isBreakout ? 'Breakout' : '+' + (riseS[0].change || 0).toFixed(0) + '%'}</div></div>` : ''}
       <div class="stat-card"><div class="stat-label">Breakout Terms</div><div class="stat-value">${breakoutCount}</div><div class="stat-sub">brand-new search queries</div></div>
+      ${predicted ? `<div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">${cap(predicted.keyword)}</div><div class="stat-sub">${predicted.signal}</div></div>` : ''}
     </div>
     <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
       ${top.length ? `<div class="chart-card"><h3>Top Queries — Search Interest</h3><p class="chart-desc">Relative search volume (0–100 normalised)</p><div class="chart-wrap" style="height:280px"><canvas id="gTopChart"></canvas></div></div>` : ''}
@@ -973,6 +993,7 @@ function renderTikTok(el) {
   const avgRC  = riseS.filter(t => t.rankChange != null).length
     ? (riseS.filter(t => t.rankChange != null).reduce((s, t) => s + t.rankChange, 0) / riseS.filter(t => t.rankChange != null).length).toFixed(1)
     : null;
+  const predicted = predictPlatformTrend('tiktok');
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -984,6 +1005,7 @@ function renderTikTok(el) {
       ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Views</div><div class="stat-value" style="font-size:18px">#${cap(topS[0].name)}</div><div class="stat-sub">${topS[0].views != null ? fmtCompact(topS[0].views) + ' views' : 'Rank ' + topS[0].rankPosition}</div></div>` : ''}
       ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">Biggest Rank Climber</div><div class="stat-value" style="font-size:18px">#${cap(riseS[0].name)}</div><div class="stat-sub">${riseS[0].rankChange != null ? '+' + riseS[0].rankChange + ' positions' : ''}</div></div>` : ''}
       <div class="stat-card"><div class="stat-label">Avg Rank Change</div><div class="stat-value">${avgRC != null ? '+' + avgRC : '—'}</div><div class="stat-sub">across rising hashtags</div></div>
+      ${predicted ? `<div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">#${cap(predicted.keyword)}</div><div class="stat-sub">${predicted.signal}</div></div>` : ''}
     </div>
     <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
       ${top.length ? `<div class="chart-card"><h3>Top Hashtags — Views</h3><p class="chart-desc">Total views per hashtag</p><div class="chart-wrap" style="height:300px"><canvas id="ttTopChart"></canvas></div></div>` : ''}
@@ -1041,6 +1063,7 @@ function renderPinterest(el) {
   // Fastest growing: all terms sorted by weeklyChange desc
   const fastGrow = [...all].filter(t => t.weeklyChange != null).sort((a, b) => b.weeklyChange - a.weeklyChange).slice(0, 10);
   const strongYoY = all.filter(t => (t.yearlyChange || 0) > 50).length;
+  const predicted  = predictPlatformTrend('pinterest');
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -1052,6 +1075,7 @@ function renderPinterest(el) {
       ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Search Volume</div><div class="stat-value" style="font-size:18px">${cap(topS[0].term)}</div><div class="stat-sub">Volume: ${topS[0].normVolume != null ? topS[0].normVolume : '—'}/100</div></div>` : ''}
       ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">#1 Rising Trend</div><div class="stat-value" style="font-size:18px">${cap(riseS[0].term)}</div><div class="stat-sub">${riseS[0].weeklyChange != null ? (riseS[0].weeklyChange > 0 ? '+' : '') + riseS[0].weeklyChange + '% weekly' : ''}</div></div>` : ''}
       <div class="stat-card"><div class="stat-label">Strong YoY Growth</div><div class="stat-value">${strongYoY}</div><div class="stat-sub">trends up &gt;50% year-on-year</div></div>
+      ${predicted ? `<div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">${cap(predicted.keyword)}</div><div class="stat-sub">${predicted.signal}</div></div>` : ''}
     </div>
     ${fastGrow.length ? `<div class="chart-row single">
       <div class="chart-card"><h3>Fastest Growing Trends — Weekly</h3><p class="chart-desc">Week-on-week growth % across all Pinterest trends (top &amp; rising combined)</p><div class="chart-wrap" style="height:280px"><canvas id="piFastChart"></canvas></div></div>
@@ -1280,6 +1304,47 @@ function predictTrend(cross) {
   if (growing.length) return { keyword: growing[0].keyword, signal: `+${Math.round(growing[0].avgGrowth)}% growth velocity` };
   // Fallback: second momentum term
   return cross[1] ? { keyword: cross[1].keyword, signal: 'Rising momentum' } : null;
+}
+
+function predictPlatformTrend(platform) {
+  // Predict from per-platform data: highest-growth rising term that isn't already #1 by volume
+  const p = state[platform];
+  if (!p) return null;
+  const top    = p.top?.terms    || [];
+  const rising = p.rising?.terms || [];
+  if (!top.length && !rising.length) return null;
+
+  if (platform === 'google') {
+    const topSorted = [...top].sort((a, b) => b.searchInterest - a.searchInterest);
+    const leader = topSorted[0]?.query;
+    // Prefer breakout rising terms
+    const bk = rising.filter(t => t.isBreakout && t.query !== leader);
+    if (bk.length) return { keyword: bk[0].query, signal: 'Breakout signal' };
+    // Else highest-growth rising not already #1
+    const r = [...rising].filter(t => t.query !== leader).sort((a, b) => (b.change || 0) - (a.change || 0));
+    if (r[0]) return { keyword: r[0].query, signal: r[0].isBreakout ? 'Breakout' : `+${Math.round(r[0].change || 0)}% rising` };
+    return topSorted[1] ? { keyword: topSorted[1].query, signal: 'High search interest' } : null;
+  }
+
+  if (platform === 'tiktok') {
+    const topSorted = [...top].sort((a, b) => (b.views || 0) - (a.views || 0));
+    const leader = topSorted[0]?.name;
+    const r = [...rising].filter(t => t.name !== leader).sort((a, b) => (b.rankChange || 0) - (a.rankChange || 0));
+    if (r[0]) return { keyword: r[0].name, signal: `+${r[0].rankChange || 0} rank positions` };
+    return topSorted[1] ? { keyword: topSorted[1].name, signal: 'High view volume' } : null;
+  }
+
+  if (platform === 'pinterest') {
+    const all = [...top, ...rising];
+    const leader = [...all].sort((a, b) => (b.normVolume || 0) - (a.normVolume || 0))[0]?.term;
+    // Prefer high weekly growth with lower current volume (room to grow)
+    const r = [...rising].filter(t => t.term !== leader).sort((a, b) => (b.weeklyChange || b.monthlyChange || 0) - (a.weeklyChange || a.monthlyChange || 0));
+    if (r[0]) return { keyword: r[0].term, signal: `+${r[0].weeklyChange != null ? r[0].weeklyChange : (r[0].monthlyChange || 0)}% weekly` };
+    const t2 = [...top].filter(t => t.term !== leader).sort((a, b) => (b.weeklyChange || 0) - (a.weeklyChange || 0));
+    if (t2[0]) return { keyword: t2[0].term, signal: `+${t2[0].weeklyChange || 0}% weekly` };
+    return null;
+  }
+  return null;
 }
 
 // ── Relevance score (0–100) ────────────────────────────────────────────────
