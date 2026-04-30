@@ -91,58 +91,76 @@
 
     .upload-card {
       background: var(--white);
-      border: 2px dashed var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 28px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-      position: relative;
+      padding: 20px;
+      cursor: default;
       user-select: none;
     }
-    .upload-card input[type=file] { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
 
-    /* Platform colour overrides via data attr */
-    .upload-card[data-platform="google"]:hover,
-    .upload-card[data-platform="google"].drag-over,
-    .upload-card[data-platform="google"].loaded  { border-color: var(--google); background: var(--google-bg); }
-    .upload-card[data-platform="tiktok"]:hover,
-    .upload-card[data-platform="tiktok"].drag-over,
-    .upload-card[data-platform="tiktok"].loaded  { border-color: var(--tiktok); background: var(--tiktok-bg); }
-    .upload-card[data-platform="pinterest"]:hover,
-    .upload-card[data-platform="pinterest"].drag-over,
-    .upload-card[data-platform="pinterest"].loaded { border-color: var(--pinterest); background: var(--pinterest-bg); }
-
-    .upload-card.loaded { border-style: solid; }
-
-    /* Loaded check badge */
-    .loaded-check {
-      display: none;
-      position: absolute; top: 12px; right: 12px;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--green); color: #fff;
-      font-size: 12px; font-weight: 700;
-      align-items: center; justify-content: center;
-    }
-    .upload-card.loaded .loaded-check { display: flex; }
+    /* Card header row */
+    .card-platform-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .card-platform-hd h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; }
+    .card-platform-hd p  { font-size: 11px; color: var(--mid); }
 
     /* Platform icons */
     .platform-icon {
-      width: 44px; height: 44px; border-radius: 10px;
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 12px;
     }
     .google-icon    { background: var(--google-bg); }
     .tiktok-icon    { background: var(--tiktok-bg); }
     .pinterest-icon { background: var(--pinterest-bg); }
 
-    .upload-card h3 {
-      font-size: 13px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 0.3px;
-      margin-bottom: 6px;
+    /* Two upload slots inside each card */
+    .upload-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .upload-slot {
+      border: 1.5px dashed #ddd;
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      background: #fafafa;
     }
-    .upload-card p  { font-size: 12px; color: var(--mid); line-height: 1.5; }
-    .file-name      { margin-top: 10px; font-size: 11px; font-weight: 600; color: var(--green); min-height: 16px; }
+    .upload-slot input[type=file] { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+    /* Platform-coloured hover / loaded states on slots */
+    [data-platform="google"]    .upload-slot:hover,
+    [data-platform="google"]    .upload-slot.drag-over,
+    [data-platform="google"]    .upload-slot.loaded { border-color: var(--google);    background: var(--google-bg); }
+    [data-platform="tiktok"]    .upload-slot:hover,
+    [data-platform="tiktok"]    .upload-slot.drag-over,
+    [data-platform="tiktok"]    .upload-slot.loaded { border-color: #555;             background: var(--tiktok-bg); }
+    [data-platform="pinterest"] .upload-slot:hover,
+    [data-platform="pinterest"] .upload-slot.drag-over,
+    [data-platform="pinterest"] .upload-slot.loaded { border-color: var(--pinterest); background: var(--pinterest-bg); }
+    .upload-slot.loaded { border-style: solid; }
+
+    /* Per-slot loaded check */
+    .slot-check {
+      display: none;
+      position: absolute; top: 6px; right: 6px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--green); color: #fff;
+      font-size: 10px; font-weight: 700;
+      align-items: center; justify-content: center;
+    }
+    .upload-slot.loaded .slot-check { display: flex; }
+
+    .slot-kind-icon { font-size: 18px; margin-bottom: 4px; }
+    .slot-kind {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--dark); margin-bottom: 3px;
+    }
+    .slot-fname {
+      font-size: 10px; color: #aaa;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .upload-slot.loaded .slot-fname { color: var(--green); font-weight: 600; }
 
     /* ── Format guide ── */
     .format-guide {
@@ -239,6 +257,7 @@
     .stat-card.accent .stat-sub   { color: rgba(255,255,255,.45); }
 
     /* Badges */
+    .badge-breakout { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #007A3322; color: var(--green); }
     .badge-up   { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: var(--green-light); color: var(--green); }
     .badge-down { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #fde8ea; color: var(--pinterest); }
     .badge-flat { font-size: 11px; font-weight: 600; color: #aaa; }
@@ -350,47 +369,98 @@
 
       <!-- Google Trends -->
       <div class="upload-card" data-platform="google" id="googleCard">
-        <input type="file" accept=".csv" id="googleFile" />
-        <div class="loaded-check">&#10003;</div>
-        <div class="platform-icon google-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
+        <div class="card-platform-hd">
+          <div class="platform-icon google-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Google Trends</h3>
+            <p>Related queries export from trends.google.com</p>
+          </div>
         </div>
-        <h3>Google Trends</h3>
-        <p>Interest over time CSV export from trends.google.com</p>
-        <div class="file-name" id="googleFileName"></div>
+        <div class="upload-slots">
+          <div class="upload-slot" id="googleTopSlot" data-platform="google" data-kind="top">
+            <input type="file" accept=".csv" id="googleTopFile" />
+            <div class="slot-check">&#10003;</div>
+            <div class="slot-kind-icon">📊</div>
+            <div class="slot-kind">Top Queries</div>
+            <div class="slot-fname" id="googleTopName">Click or drop</div>
+          </div>
+          <div class="upload-slot" id="googleRisingSlot" data-platform="google" data-kind="rising">
+            <input type="file" accept=".csv" id="googleRisingFile" />
+            <div class="slot-check">&#10003;</div>
+            <div class="slot-kind-icon">📈</div>
+            <div class="slot-kind">Rising Queries</div>
+            <div class="slot-fname" id="googleRisingName">Click or drop</div>
+          </div>
+        </div>
       </div>
 
       <!-- TikTok -->
       <div class="upload-card" data-platform="tiktok" id="tiktokCard">
-        <input type="file" accept=".csv" id="tiktokFile" />
-        <div class="loaded-check">&#10003;</div>
-        <div class="platform-icon tiktok-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#111">
-            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.01a8.16 8.16 0 0 0 4.77 1.52V7.1a4.85 4.85 0 0 1-1-.41z"/>
-          </svg>
+        <div class="card-platform-hd">
+          <div class="platform-icon tiktok-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#111">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.01a8.16 8.16 0 0 0 4.77 1.52V7.1a4.85 4.85 0 0 1-1-.41z"/>
+            </svg>
+          </div>
+          <div>
+            <h3>TikTok Trends</h3>
+            <p>Hashtag export from TikTok Creative Center</p>
+          </div>
         </div>
-        <h3>TikTok Trends</h3>
-        <p>Hashtag or keyword trend CSV from TikTok Creative Center</p>
-        <div class="file-name" id="tiktokFileName"></div>
+        <div class="upload-slots">
+          <div class="upload-slot" id="tiktokTopSlot" data-platform="tiktok" data-kind="top">
+            <input type="file" accept=".csv" id="tiktokTopFile" />
+            <div class="slot-check">&#10003;</div>
+            <div class="slot-kind-icon">📊</div>
+            <div class="slot-kind">Top Hashtags</div>
+            <div class="slot-fname" id="tiktokTopName">Click or drop</div>
+          </div>
+          <div class="upload-slot" id="tiktokRisingSlot" data-platform="tiktok" data-kind="rising">
+            <input type="file" accept=".csv" id="tiktokRisingFile" />
+            <div class="slot-check">&#10003;</div>
+            <div class="slot-kind-icon">📈</div>
+            <div class="slot-kind">Rising Hashtags</div>
+            <div class="slot-fname" id="tiktokRisingName">Click or drop</div>
+          </div>
+        </div>
       </div>
 
       <!-- Pinterest -->
       <div class="upload-card" data-platform="pinterest" id="pinterestCard">
-        <input type="file" accept=".csv" id="pinterestFile" />
-        <div class="loaded-check">&#10003;</div>
-        <div class="platform-icon pinterest-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#E60023">
-            <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-          </svg>
+        <div class="card-platform-hd">
+          <div class="platform-icon pinterest-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#E60023">
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Pinterest Trends</h3>
+            <p>Ranked trends export from Pinterest Trends tool</p>
+          </div>
         </div>
-        <h3>Pinterest Trends</h3>
-        <p>Weekly search volume CSV export from Pinterest Trends</p>
-        <div class="file-name" id="pinterestFileName"></div>
+        <div class="upload-slots">
+          <div class="upload-slot" id="pinterestTopSlot" data-platform="pinterest" data-kind="top">
+            <input type="file" accept=".csv" id="pinterestTopFile" />
+            <div class="slot-check">&#10003;</div>
+            <div class="slot-kind-icon">📊</div>
+            <div class="slot-kind">Top Trends</div>
+            <div class="slot-fname" id="pinterestTopName">Click or drop</div>
+          </div>
+          <div class="upload-slot" id="pinterestRisingSlot" data-platform="pinterest" data-kind="rising">
+            <input type="file" accept=".csv" id="pinterestRisingFile" />
+            <div class="slot-check">&#10003;</div>
+            <div class="slot-kind-icon">📈</div>
+            <div class="slot-kind">Rising Trends</div>
+            <div class="slot-fname" id="pinterestRisingName">Click or drop</div>
+          </div>
+        </div>
       </div>
 
     </div><!-- /upload-grid -->
@@ -403,22 +473,25 @@
       </div>
       <div class="format-guide-body" id="fmtBody">
         <div class="fmt-col">
-          <h4>Google Trends</h4>
-          <pre>Week,fashion,homeware,beauty
-2024-01-07,45,72,38
-2024-01-14,52,80,41</pre>
+          <h4>Google — Top &amp; Rising Queries</h4>
+          <pre>query,search interest,increase percent
+gen z fashion,0,4450%
+sustainable fashion,2,50%
+m&amp;s ice blue,1,Breakout</pre>
         </div>
         <div class="fmt-col">
-          <h4>TikTok</h4>
-          <pre>Hashtag,Views,Growth %,Posts
-#fashion,2300000000,34,892000
-#homeware,890000000,28,340000</pre>
+          <h4>TikTok — Top &amp; Rising Hashtags</h4>
+          <pre>hashtag_name,posts,views,rank_position,rank_change
+dealdrops,92740,259950910,1,1
+springfashion,4101,29664230,9,1
+dresses,4543,19368357,13,12</pre>
         </div>
         <div class="fmt-col">
-          <h4>Pinterest Trends</h4>
-          <pre>Date,fashion,homeware,beauty
-2024-01-07,65,82,71
-2024-01-14,70,85,74</pre>
+          <h4>Pinterest — Top &amp; Rising Trends</h4>
+          <pre>Rank,Trend,Normalised volume,Weekly change,Monthly change,Yearly change
+1,outfit ideas,100,-30%,-3%,3%
+2,spring outfits,77,-50%,-4%,-30%
+17,coachella outfits,16,200%,600%,10000%+</pre>
         </div>
       </div>
     </div>
@@ -455,68 +528,72 @@
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
 const state = {
-  google:    null,   // { type:'timeseries', keywords:[], series:[{date,dateStr,values}] }
-  tiktok:    null,   // { type:'timeseries'|'ranking', ... }
-  pinterest: null,   // { type:'timeseries', keywords:[], series:[{date,dateStr,values}] }
+  google:    { top: null, rising: null },
+  tiktok:    { top: null, rising: null },
+  pinterest: { top: null, rising: null },
   view:      'cross',
 };
 
-// ── Platform meta ──────────────────────────────────────────────────────────
 const PLAT = {
   google:    { label: 'Google',    color: '#4285F4', bg: '#e8f0fe' },
   tiktok:    { label: 'TikTok',    color: '#111111', bg: '#f0f0f0' },
   pinterest: { label: 'Pinterest', color: '#E60023', bg: '#fde8ea' },
 };
 
-// ── Wire up upload cards ───────────────────────────────────────────────────
-['google', 'tiktok', 'pinterest'].forEach(p => {
-  const card  = document.getElementById(p + 'Card');
-  const input = document.getElementById(p + 'File');
-
-  card.addEventListener('click', () => input.click());
-
-  card.addEventListener('dragover', e => {
-    e.preventDefault();
-    card.classList.add('drag-over');
-  });
-  card.addEventListener('dragleave', e => {
-    if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
-  });
-  card.addEventListener('drop', e => {
-    e.preventDefault();
-    card.classList.remove('drag-over');
+// ── Wire up upload slots (6 slots: top + rising per platform) ──────────────
+[
+  ['google',    'top',    'googleTopSlot',       'googleTopFile'],
+  ['google',    'rising', 'googleRisingSlot',    'googleRisingFile'],
+  ['tiktok',    'top',    'tiktokTopSlot',       'tiktokTopFile'],
+  ['tiktok',    'rising', 'tiktokRisingSlot',    'tiktokRisingFile'],
+  ['pinterest', 'top',    'pinterestTopSlot',    'pinterestTopFile'],
+  ['pinterest', 'rising', 'pinterestRisingSlot', 'pinterestRisingFile'],
+].forEach(([platform, kind, slotId, fileId]) => {
+  const slot  = document.getElementById(slotId);
+  const input = document.getElementById(fileId);
+  if (!slot || !input) return;
+  slot.addEventListener('click',     e => { e.stopPropagation(); input.click(); });
+  slot.addEventListener('dragover',  e => { e.preventDefault(); slot.classList.add('drag-over'); });
+  slot.addEventListener('dragleave', e => { if (!slot.contains(e.relatedTarget)) slot.classList.remove('drag-over'); });
+  slot.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation();
+    slot.classList.remove('drag-over');
     const f = e.dataTransfer.files[0];
-    if (f) loadFile(p, f);
+    if (f) loadFile(platform, kind, f);
   });
   input.addEventListener('change', e => {
     const f = e.target.files[0];
-    if (f) loadFile(p, f);
+    if (f) loadFile(platform, kind, f);
     input.value = '';
   });
 });
 
-function loadFile(platform, file) {
+// ── File handling ──────────────────────────────────────────────────────────
+function loadFile(platform, kind, file) {
   Papa.parse(file, {
-    header: false,
-    skipEmptyLines: false,
+    header: false, skipEmptyLines: false,
     complete: ({ data }) => {
-      const parsed = parse(platform, data);
+      const rows   = data.filter(r => r.some(c => (c || '').trim()));
+      const parsed = parsePlatform(platform, rows);
       if (!parsed) {
-        alert('Could not recognise the CSV format for ' + PLAT[platform].label + '. Check the expected format guide below the upload cards.');
+        alert(`Could not recognise the CSV format for ${PLAT[platform].label}. Check the format guide.`);
         return;
       }
-      state[platform] = parsed;
-      markLoaded(platform, file.name);
+      parsed.kind = kind;
+      state[platform][kind] = parsed;
+      markSlotLoaded(platform, kind, file.name);
       onDataChange();
     },
     error: err => alert('Parse error: ' + err.message),
   });
 }
 
-function markLoaded(platform, fileName) {
-  const card = document.getElementById(platform + 'Card');
-  card.classList.add('loaded');
-  document.getElementById(platform + 'FileName').textContent = fileName;
+function markSlotLoaded(platform, kind, fileName) {
+  const kk    = kind.charAt(0).toUpperCase() + kind.slice(1);
+  const slot  = document.getElementById(`${platform}${kk}Slot`);
+  const fname = document.getElementById(`${platform}${kk}Name`);
+  if (slot)  slot.classList.add('loaded');
+  if (fname) fname.textContent = fileName;
 }
 
 // ── Format-guide toggle ────────────────────────────────────────────────────
@@ -527,266 +604,174 @@ document.getElementById('fmtToggle').addEventListener('click', () => {
   arrow.innerHTML = open ? '&#9650;' : '&#9660;';
 });
 
-// ── Platform-select change ─────────────────────────────────────────────────
+// ── View change ────────────────────────────────────────────────────────────
 document.getElementById('platformSelect').addEventListener('change', e => {
   state.view = e.target.value;
   renderDashboard();
 });
 
 // ── Parsers ────────────────────────────────────────────────────────────────
-
-function parse(platform, rows) {
-  const nonEmpty = rows.filter(r => r.some(c => (c || '').trim()));
-  if (nonEmpty.length < 2) return null;
-
-  if (platform === 'google' || platform === 'pinterest') {
-    return parseTimeSeries(nonEmpty, platform);
-  }
-  // TikTok: detect ranking vs timeseries
-  return parseTikTok(nonEmpty);
+function parsePlatform(platform, rows) {
+  if (rows.length < 2) return null;
+  if (platform === 'google')    return parseGoogle(rows);
+  if (platform === 'tiktok')    return parseTikTok(rows);
+  if (platform === 'pinterest') return parsePinterest(rows);
+  return null;
 }
 
-// Shared time-series parser (Google + Pinterest)
-function parseTimeSeries(rows, platform) {
-  const headerIdx = findHeaderRow(rows);
-  if (headerIdx === null) return null;
-
-  const headers   = rows[headerIdx].map(h => (h || '').trim());
-  const dataStart = headerIdx + 1;
-
-  // Drop the date column; skip any isPartial / empty columns
-  const keywords = headers.slice(1).filter(h => h && !h.toLowerCase().includes('ispartial'));
-  if (!keywords.length) return null;
-
-  const series = [];
-  for (let i = dataStart; i < rows.length; i++) {
-    const row     = rows[i];
-    const dateStr = (row[0] || '').trim();
-    if (!dateStr || dateStr.toLowerCase().includes('ispartial')) continue;
-
-    const date = parseDate(dateStr);
-    if (!date) continue;
-
-    const values = {};
-    keywords.forEach((kw, ki) => {
-      const raw = (row[ki + 1] || '').replace(/[<>%]/g, '').trim();
-      const v   = parseFloat(raw);
-      values[kw] = isNaN(v) ? null : v;
+function parseGoogle(rows) {
+  const hi = rows.findIndex(r => (r[0] || '').toLowerCase().trim() === 'query');
+  if (hi < 0) return null;
+  const h      = rows[hi].map(c => (c || '').toLowerCase().trim());
+  const intCol = h.findIndex(c => c.includes('interest') || c.includes('volume') || c.includes('search'));
+  const chgCol = h.findIndex(c => c.includes('increase') || c.includes('change') || c === '%');
+  const terms  = [];
+  for (let i = hi + 1; i < rows.length; i++) {
+    const r     = rows[i];
+    const query = (r[0] || '').trim();
+    if (!query) continue;
+    const rawChg     = chgCol >= 0 ? (r[chgCol] || '').trim() : '';
+    const isBreakout = rawChg.toLowerCase() === 'breakout';
+    terms.push({
+      query,
+      searchInterest: intCol >= 0 ? (parseFloat(r[intCol]) || 0) : 0,
+      change:         isBreakout ? null : parseGrowth(rawChg),
+      isBreakout,
     });
-    series.push({ date, dateStr, values });
   }
-
-  if (!series.length) return null;
-  return { type: 'timeseries', keywords, series, platform };
+  return terms.length ? { type: 'keyword_list', platform: 'google', terms } : null;
 }
 
-// TikTok: could be a ranking table or a time-series
 function parseTikTok(rows) {
-  const headerIdx = findHeaderRow(rows);
-  if (headerIdx === null) return null;
-
-  const headers = rows[headerIdx].map(h => (h || '').toLowerCase().trim());
-
-  const isRanking = headers.some(h =>
-    ['hashtag','topic','trend','rank','views','growth','posts','video'].some(k => h.includes(k))
-  );
-
-  if (isRanking) return parseTikTokRanking(rows, headerIdx, headers);
-
-  // Fall back to generic timeseries
-  return parseTimeSeries(rows, 'tiktok');
-}
-
-function parseTikTokRanking(rows, headerIdx, headers) {
-  // Map column positions
-  const col = {};
-  headers.forEach((h, i) => {
-    if (!col.name   && ['hashtag','topic','trend','keyword','name'].some(k => h.includes(k))) col.name   = i;
-    if (!col.rank   && h.includes('rank'))                                                     col.rank   = i;
-    if (!col.views  && h.includes('view'))                                                     col.views  = i;
-    if (!col.growth && (h.includes('growth') || h.includes('change') || h === '%'))            col.growth = i;
-    if (!col.posts  && (h.includes('post')  || h.includes('video')  || h.includes('count')))  col.posts  = i;
-  });
-  if (col.name === undefined) col.name = 0;
-
-  const topics = [];
+  const hi = rows.findIndex(r => r.some(c => {
+    const h = (c || '').toLowerCase().trim();
+    return h === 'hashtag_name' || h === 'hashtag_id';
+  }));
+  const headerIdx = hi >= 0 ? hi : rows.findIndex(r => r.some(c => (c || '').toLowerCase().includes('name')));
+  if (headerIdx < 0) return null;
+  const h        = rows[headerIdx].map(c => (c || '').toLowerCase().trim());
+  const nameCol  = h.findIndex(c => c === 'hashtag_name' || (c.includes('name') && !c.includes('id') && !c.includes('file')));
+  const viewsCol = h.findIndex(c => c === 'views');
+  const vLifeCol = h.findIndex(c => c.includes('global_lifetime') || c === 'views_global_lifetime');
+  const postsCol = h.findIndex(c => c === 'posts');
+  const pgCol    = h.findIndex(c => c === 'posts_global');
+  const rankPCol = h.findIndex(c => c === 'rank_position' || c === 'rank');
+  const rankCCol = h.findIndex(c => c === 'rank_change');
+  if (nameCol < 0) return null;
+  const terms = [];
   for (let i = headerIdx + 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || !row.some(c => (c || '').trim())) continue;
-
-    const name = stripHash((row[col.name] || '').trim());
+    const r    = rows[i];
+    const name = stripHash((r?.[nameCol] || '').trim());
     if (!name) continue;
-
-    topics.push({
+    terms.push({
       name,
-      rank:   col.rank   !== undefined ? (parseInt(row[col.rank])          || i - headerIdx) : i - headerIdx,
-      views:  col.views  !== undefined ? parseCompact(row[col.views])  : null,
-      growth: col.growth !== undefined ? parseGrowth(row[col.growth])  : null,
-      posts:  col.posts  !== undefined ? parseCompact(row[col.posts])  : null,
+      views:         viewsCol >= 0 ? parseCompact(r[viewsCol])  : null,
+      viewsLifetime: vLifeCol >= 0 ? parseCompact(r[vLifeCol])  : null,
+      posts:         postsCol >= 0 ? parseCompact(r[postsCol])  : null,
+      postsGlobal:   pgCol    >= 0 ? parseCompact(r[pgCol])     : null,
+      rankPosition:  rankPCol >= 0 ? (parseInt(r[rankPCol]) || i - headerIdx) : i - headerIdx,
+      rankChange:    rankCCol >= 0 ? (parseInt(r[rankCCol]) || 0) : null,
     });
   }
-
-  if (!topics.length) return null;
-  return { type: 'ranking', topics, platform: 'tiktok' };
+  return terms.length ? { type: 'keyword_list', platform: 'tiktok', terms } : null;
 }
 
-// ── Parser helpers ─────────────────────────────────────────────────────────
-
-// Find the row index that contains the header (date/week/month as first cell,
-// OR contains keyword-like column names)
-function findHeaderRow(rows) {
-  for (let i = 0; i < Math.min(rows.length, 12); i++) {
-    const first = (rows[i][0] || '').toLowerCase().trim();
-    if (['week','date','month','day'].includes(first)) return i;
-
-    // Header row for ranking tables
+function parsePinterest(rows) {
+  let hi = -1;
+  for (let i = 0; i < rows.length; i++) {
     const cells = rows[i].map(c => (c || '').toLowerCase().trim());
-    if (cells.some(c => ['hashtag','topic','trend','keyword','rank','views','growth'].some(k => c.includes(k)))) return i;
+    if (cells.includes('rank') || cells.includes('trend')) { hi = i; break; }
   }
-
-  // Fall back: first row whose first cell looks like a date is probably data row 0 — treat row above as header
-  for (let i = 0; i < Math.min(rows.length, 12); i++) {
-    if (parseDate((rows[i][0] || '').trim())) return Math.max(0, i - 1);
+  if (hi < 0) return null;
+  const h       = rows[hi].map(c => (c || '').toLowerCase().trim());
+  const rankCol = h.findIndex(c => c === 'rank');
+  const trendCol= h.findIndex(c => c === 'trend');
+  const volCol  = h.findIndex(c => c.includes('normalised') || c.includes('normalized') || (c.includes('volume') && !c.includes('change')));
+  const wkCol   = h.findIndex(c => c.includes('weekly'));
+  const moCol   = h.findIndex(c => c.includes('monthly'));
+  const yrCol   = h.findIndex(c => c.includes('yearly'));
+  if (trendCol < 0) return null;
+  const terms = [];
+  for (let i = hi + 1; i < rows.length; i++) {
+    const r    = rows[i];
+    const term = (r?.[trendCol] || '').trim();
+    if (!term || /^data in the/i.test(term)) continue;
+    terms.push({
+      term,
+      rank:          rankCol >= 0 ? (parseInt(r[rankCol])   || terms.length + 1) : terms.length + 1,
+      normVolume:    volCol  >= 0 ? (parseFloat(r[volCol])  || null)             : null,
+      weeklyChange:  wkCol   >= 0 ? parseGrowth(r[wkCol])                        : null,
+      monthlyChange: moCol   >= 0 ? parseGrowth(r[moCol])                        : null,
+      yearlyChange:  yrCol   >= 0 ? parseGrowth(r[yrCol])                        : null,
+    });
   }
-  return null;
+  return terms.length ? { type: 'keyword_list', platform: 'pinterest', terms } : null;
 }
 
-function parseDate(str) {
-  if (!str) return null;
-  const iso = new Date(str);
-  if (!isNaN(iso)) return iso;
-  // DD/MM/YYYY
-  const p = str.split('/');
-  if (p.length === 3) {
-    const d = new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`);
-    if (!isNaN(d)) return d;
-  }
-  return null;
-}
-
-// Parse numbers with K / M / B suffixes and currency symbols
-function parseCompact(s) {
-  if (!s && s !== 0) return null;
-  const raw = String(s).trim().toUpperCase();
-  let mult = 1;
-  if (raw.endsWith('B')) mult = 1e9;
-  else if (raw.endsWith('M')) mult = 1e6;
-  else if (raw.endsWith('K')) mult = 1e3;
-  const n = parseFloat(raw.replace(/[£$€,%+KMBkmb\s]/g, ''));
-  return isNaN(n) ? null : n * mult;
-}
-
-// Parse a growth / change string like "+34%", "-12", "34.5%"
+// ── Parse helpers ──────────────────────────────────────────────────────────
 function parseGrowth(s) {
   if (!s) return null;
   const n = parseFloat(String(s).replace(/[+%\s,]/g, ''));
   return isNaN(n) ? null : n;
 }
-
-function stripHash(s) {
-  return s.replace(/^#+/, '').replace(/"/g, '').trim();
+function parseCompact(s) {
+  if (!s && s !== 0) return null;
+  const raw  = String(s).trim().toUpperCase();
+  const mult = raw.endsWith('B') ? 1e9 : raw.endsWith('M') ? 1e6 : raw.endsWith('K') ? 1e3 : 1;
+  const n    = parseFloat(raw.replace(/[£$€,%+KMBE\s]/g, ''));
+  return isNaN(n) ? null : n * mult;
 }
+function stripHash(s)     { return s.replace(/^#+/, '').replace(/"/g, '').trim(); }
+function norm(s)          { return s.toLowerCase().replace(/^#+/, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim(); }
+function fuzzyMatch(a, b) { return a === b || a.includes(b) || b.includes(a); }
 
 // ── Analysis ───────────────────────────────────────────────────────────────
 
-// Returns per-keyword stats for a timeseries dataset
-function analyzeTimeSeries(data) {
-  if (!data || data.type !== 'timeseries') return null;
-  const { keywords, series } = data;
-  if (!series.length) return null;
-
-  const out = {};
-  keywords.forEach(kw => {
-    const vals = series.map(s => s.values[kw]).filter(v => v !== null && v !== undefined);
-    if (!vals.length) return;
-
-    const avg      = vals.reduce((a, b) => a + b, 0) / vals.length;
-    const peak     = Math.max(...vals);
-    const latest   = vals[vals.length - 1];
-    const earliest = vals[0];
-    const growth   = earliest > 0 ? ((latest - earliest) / earliest) * 100 : 0;
-
-    // Recent momentum: last 4 points vs prior 4
-    const recent     = vals.slice(-4);
-    const prior      = vals.slice(-8, -4);
-    const recentAvg  = recent.reduce((a, b) => a + b, 0) / recent.length;
-    const priorAvg   = prior.length ? prior.reduce((a, b) => a + b, 0) / prior.length : recentAvg;
-    const momentum   = priorAvg > 0 ? ((recentAvg - priorAvg) / priorAvg) * 100 : 0;
-
-    out[kw] = { avg, peak, latest, earliest, growth, momentum, vals };
-  });
-  return out;
+function hasData(platform) {
+  return !!(state[platform].top || state[platform].rising);
 }
 
-// Cross-platform: merge all keywords, score by presence + growth
 function analyzeCross() {
-  const gStats  = analyzeTimeSeries(state.google);
-  const ttStats = state.tiktok?.type === 'timeseries' ? analyzeTimeSeries(state.tiktok) : null;
-  const piStats = analyzeTimeSeries(state.pinterest);
+  const map = new Map();
 
-  // Build a map: normalisedKeyword -> { platforms, scores, growths }
-  const map = {};
+  const upsert = (normKey, label, platform, vol, growth, isBreakout) => {
+    if (!map.has(normKey)) map.set(normKey, { keyword: label, platforms: [], vol: {}, growth: {}, breakout: {} });
+    const e = map.get(normKey);
+    if (!e.platforms.includes(platform)) e.platforms.push(platform);
+    if (vol    != null) e.vol[platform]     = vol;
+    if (growth != null) e.growth[platform]  = growth;
+    e.breakout[platform] = isBreakout || false;
+  };
 
-  function upsert(normKw, platform, score, growth) {
-    if (!map[normKw]) map[normKw] = { keyword: normKw, platforms: [], scores: {}, growths: {} };
-    if (!map[normKw].platforms.includes(platform)) map[normKw].platforms.push(platform);
-    map[normKw].scores[platform]  = score;
-    map[normKw].growths[platform] = growth;
-  }
-
-  if (gStats) {
-    Object.entries(gStats).forEach(([kw, s]) => upsert(norm(kw), 'google', s.latest, s.growth));
-  }
-  if (ttStats) {
-    Object.entries(ttStats).forEach(([kw, s]) => upsert(norm(kw), 'tiktok', s.latest, s.growth));
-  }
-  if (state.tiktok?.type === 'ranking') {
-    state.tiktok.topics.forEach(t => {
-      const nk = norm(t.name);
-      // Try to match against existing keys first
-      const existing = Object.keys(map).find(k => fuzzyMatch(k, nk));
-      const key = existing || nk;
-      upsert(key, 'tiktok', t.views, t.growth);
+  const addTerms = (platform, terms) => {
+    terms.forEach(t => {
+      const raw      = t.query || t.term || t.name || '';
+      const nk       = norm(raw);
+      const existing = [...map.keys()].find(k => fuzzyMatch(k, nk));
+      const key      = existing || nk;
+      const label    = existing ? map.get(existing).keyword : raw;
+      upsert(key, label, platform,
+        t.searchInterest ?? t.normVolume ?? t.views ?? null,
+        t.change ?? t.weeklyChange ?? t.rankChange ?? null,
+        t.isBreakout);
     });
-  }
-  if (piStats) {
-    Object.entries(piStats).forEach(([kw, s]) => {
-      const existing = Object.keys(map).find(k => fuzzyMatch(k, norm(kw)));
-      const key = existing || norm(kw);
-      upsert(key, 'pinterest', s.latest, s.growth);
-    });
-  }
+  };
 
-  // Score each keyword
-  const results = Object.values(map).map(entry => {
-    const growths    = Object.values(entry.growths).filter(g => g !== null);
-    const avgGrowth  = growths.length ? growths.reduce((a, b) => a + b, 0) / growths.length : 0;
-    // Momentum score: platform count (up to 3) weighted at 30 pts each + capped growth signal
-    const momentum   = (entry.platforms.length * 30) + Math.min(Math.max(avgGrowth, 0), 40);
-    return { ...entry, avgGrowth, momentum };
+  ['google','tiktok','pinterest'].forEach(p => {
+    if (state[p].top)    addTerms(p, state[p].top.terms);
+    if (state[p].rising) addTerms(p, state[p].rising.terms);
   });
 
-  return results.sort((a, b) => b.momentum - a.momentum);
+  return [...map.values()].map(e => {
+    const growths   = Object.values(e.growth).filter(g => g != null && !isNaN(g));
+    const avgGrowth = growths.length ? growths.reduce((a, b) => a + b, 0) / growths.length : 0;
+    const hasBreakout = Object.values(e.breakout).some(Boolean);
+    return { ...e, avgGrowth, hasBreakout,
+      momentum: (e.platforms.length * 30) + Math.min(Math.max(avgGrowth, 0), 40) + (hasBreakout ? 20 : 0) };
+  }).sort((a, b) => b.momentum - a.momentum);
 }
 
-// ── Normalisation helpers ──────────────────────────────────────────────────
-
-function norm(s) {
-  return s.toLowerCase()
-    .replace(/^#+/, '')
-    .replace(/[^a-z0-9\s]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function fuzzyMatch(a, b) {
-  if (a === b) return true;
-  if (a.includes(b) || b.includes(a)) return true;
-  return false;
-}
-
-// ── UI update after data load ──────────────────────────────────────────────
-
+// ── UI ─────────────────────────────────────────────────────────────────────
 function onDataChange() {
   document.getElementById('controlsBar').classList.add('visible');
   document.getElementById('dashboard').classList.add('visible');
@@ -795,661 +780,462 @@ function onDataChange() {
 }
 
 function updateStatusPills() {
-  const labels = { google: 'Google', tiktok: 'TikTok', pinterest: 'Pinterest' };
   document.getElementById('statusPills').innerHTML =
-    Object.keys(labels).map(p => `
-      <div class="status-pill ${state[p] ? 'on' : 'off'}">
-        <div class="status-dot"></div>${labels[p]}
+    ['google','tiktok','pinterest'].map(p => `
+      <div class="status-pill ${hasData(p) ? 'on' : 'off'}">
+        <div class="status-dot"></div>${PLAT[p].label}
       </div>`).join('');
 }
 
 // ── Chart registry ─────────────────────────────────────────────────────────
 const charts = {};
-
 function destroyCharts() {
   Object.values(charts).forEach(c => c && c.destroy());
   Object.keys(charts).forEach(k => delete charts[k]);
 }
 
-// ── Render dispatcher (overridden after insight generators are defined) ────
+// ── Render dispatcher ──────────────────────────────────────────────────────
+function renderDashboard() {
+  destroyCharts();
+  const el = document.getElementById('dashboardContent');
+  const v  = state.view;
+  if      (v === 'cross')     renderCross(el);
+  else if (v === 'google')    renderPlatformView(el, 'google');
+  else if (v === 'tiktok')    renderPlatformView(el, 'tiktok');
+  else if (v === 'pinterest') renderPlatformView(el, 'pinterest');
+}
 
 // ── Cross-platform view ────────────────────────────────────────────────────
 function renderCross(el) {
-  const cross   = analyzeCross();
-  const loaded  = ['google','tiktok','pinterest'].filter(p => state[p]);
-  const multi   = cross.filter(d => d.platforms.length > 1);
-  const top     = cross[0];
-  const emerging= cross.filter(d => d.avgGrowth > 20).slice(0, 6);
+  const cross     = analyzeCross();
+  const loaded    = ['google','tiktok','pinterest'].filter(hasData);
+  const multi     = cross.filter(d => d.platforms.length > 1);
+  const breakouts = cross.filter(d => d.hasBreakout);
+  const top       = cross[0];
 
   el.innerHTML = `
-    <div class="section-hd">
-      <div>
-        <div class="section-title">Cross-Platform <em>Overview</em></div>
-        <div class="section-sub">${loaded.length} platform${loaded.length !== 1 ? 's' : ''} loaded · ${cross.length} trends detected</div>
-      </div>
-    </div>
-
+    <div class="section-hd"><div>
+      <div class="section-title">Cross-Platform <em>Overview</em></div>
+      <div class="section-sub">${loaded.length} platform${loaded.length !== 1 ? 's' : ''} loaded · ${cross.length} unique trends detected</div>
+    </div></div>
     <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-label">Trends Detected</div>
-        <div class="stat-value">${cross.length}</div>
-        <div class="stat-sub">across ${loaded.length} platform${loaded.length !== 1 ? 's' : ''}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Cross-Platform</div>
-        <div class="stat-value">${multi.length}</div>
-        <div class="stat-sub">on 2+ platforms</div>
-      </div>
-      <div class="stat-card accent">
-        <div class="stat-label">Top Trend</div>
-        <div class="stat-value" style="font-size:18px">${top ? cap(top.keyword) : '—'}</div>
-        <div class="stat-sub">${top ? top.platforms.map(p => PLAT[p].label).join(' · ') : ''}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Emerging (&gt;20% growth)</div>
-        <div class="stat-value">${emerging.length}</div>
-        <div class="stat-sub">high-velocity trends</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Unique Trends</div><div class="stat-value">${cross.length}</div><div class="stat-sub">across ${loaded.length} platform${loaded.length !== 1 ? 's' : ''}</div></div>
+      <div class="stat-card"><div class="stat-label">Cross-Platform</div><div class="stat-value">${multi.length}</div><div class="stat-sub">appearing on 2+ platforms</div></div>
+      <div class="stat-card accent"><div class="stat-label">Top Momentum Trend</div><div class="stat-value" style="font-size:18px">${top ? cap(top.keyword) : '—'}</div><div class="stat-sub">${top ? top.platforms.map(p => PLAT[p].label).join(' · ') : ''}</div></div>
+      <div class="stat-card"><div class="stat-label">Breakout Terms</div><div class="stat-value">${breakouts.length}</div><div class="stat-sub">Google breakout signals</div></div>
     </div>
-
-    <div class="chart-row" id="crossCharts">
-      <div class="chart-card">
-        <h3>Momentum Score — Top 10</h3>
-        <p class="chart-desc">Cross-platform score combining presence and growth rate</p>
-        <div class="chart-wrap" style="height:300px"><canvas id="cMomentumChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <h3>Platform Presence</h3>
-        <p class="chart-desc">Which trends appear across multiple platforms simultaneously</p>
-        <div class="chart-wrap" style="height:300px"><canvas id="cPresenceChart"></canvas></div>
-      </div>
+    <div class="chart-row">
+      <div class="chart-card"><h3>Momentum Score — Top 12</h3><p class="chart-desc">Platform presence + growth rate + breakout signal</p><div class="chart-wrap" style="height:320px"><canvas id="cMomentumChart"></canvas></div></div>
+      <div class="chart-card"><h3>Platform Presence</h3><p class="chart-desc">Trends appearing across multiple platforms simultaneously</p><div class="chart-wrap" style="height:320px"><canvas id="cPresenceChart"></canvas></div></div>
     </div>
-
     <div class="table-section">
-      <div class="section-hd">
-        <div>
-          <div class="section-title">Trend <em>Intelligence</em> Table</div>
-          <div class="section-sub">All trends ranked by cross-platform momentum</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>#</th>
-            <th>Trend</th>
-            <th>Platforms</th>
-            <th>Avg Growth</th>
-            <th>Momentum</th>
-            ${state.google    ? '<th>Google</th>'    : ''}
-            ${state.tiktok    ? '<th>TikTok</th>'    : ''}
-            ${state.pinterest ? '<th>Pinterest</th>' : ''}
-          </tr></thead>
-          <tbody>
-            ${cross.slice(0, 25).map((d, i) => `
-              <tr>
-                <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
-                <td class="td-bold">${cap(d.keyword)}</td>
-                <td>${d.platforms.map(p => `<span class="ptag ${p}">${PLAT[p].label}</span>`).join('')}</td>
-                <td>${growthBadge(d.avgGrowth)}</td>
-                <td>
-                  <div class="momentum-bar">
-                    <div class="momentum-fill" style="width:${Math.min(d.momentum, 100)}px"></div>
-                    <span class="momentum-num">${Math.round(d.momentum)}</span>
-                  </div>
-                </td>
-                ${state.google    ? `<td>${d.scores.google    !== undefined ? Math.round(d.scores.google)         : '<span style="color:#ccc">—</span>'}</td>` : ''}
-                ${state.tiktok    ? `<td>${d.scores.tiktok    !== undefined ? fmtCompact(d.scores.tiktok)         : '<span style="color:#ccc">—</span>'}</td>` : ''}
-                ${state.pinterest ? `<td>${d.scores.pinterest !== undefined ? Math.round(d.scores.pinterest)      : '<span style="color:#ccc">—</span>'}</td>` : ''}
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
+      <div class="section-hd"><div class="section-title">Trend <em>Intelligence</em> Table</div></div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>#</th><th>Trend</th><th>Platforms</th><th>Growth Signal</th><th>Breakout</th><th>Momentum</th>
+          ${hasData('google')    ? '<th>Google</th>'       : ''}
+          ${hasData('tiktok')    ? '<th>TikTok Views</th>' : ''}
+          ${hasData('pinterest') ? '<th>Pinterest Vol</th>': ''}
+        </tr></thead>
+        <tbody>${cross.slice(0, 25).map((d, i) => `<tr>
+          <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
+          <td class="td-bold">${cap(d.keyword)}</td>
+          <td>${d.platforms.map(p => `<span class="ptag ${p}">${PLAT[p].label}</span>`).join('')}</td>
+          <td>${growthBadge(d.avgGrowth, false)}</td>
+          <td>${d.hasBreakout ? '<span class="badge-breakout">Breakout</span>' : '<span style="color:#ccc">—</span>'}</td>
+          <td><div class="momentum-bar"><div class="momentum-fill" style="width:${Math.min(d.momentum, 100)}px"></div><span class="momentum-num">${Math.round(d.momentum)}</span></div></td>
+          ${hasData('google')    ? `<td>${d.vol.google    != null ? d.vol.google              : '<span style="color:#ccc">—</span>'}</td>` : ''}
+          ${hasData('tiktok')    ? `<td>${d.vol.tiktok    != null ? fmtCompact(d.vol.tiktok)  : '<span style="color:#ccc">—</span>'}</td>` : ''}
+          ${hasData('pinterest') ? `<td>${d.vol.pinterest != null ? d.vol.pinterest           : '<span style="color:#ccc">—</span>'}</td>` : ''}
+        </tr>`).join('')}</tbody>
+      </table></div>
     </div>
-
     <div class="insights-card">
       <div class="insights-hd"><div class="insights-icon">📊</div><h3>Key Insights</h3></div>
       <div class="insights-body" id="crossInsights"></div>
     </div>`;
 
   setTimeout(() => {
-    chartMomentum('cMomentumChart', cross.slice(0, 10));
-    chartPresence('cPresenceChart', multi.length ? multi.slice(0, 8) : cross.slice(0, 8));
+    mkHorizBar('cMomentumChart',
+      cross.slice(0, 12).map(d => cap(d.keyword)),
+      cross.slice(0, 12).map(d => Math.round(d.momentum)),
+      cross.slice(0, 12).map((_, i) => i === 0 ? '#007A33' : i < 3 ? '#4ade80' : '#d1fae5'), 'Momentum');
+    chartPresence('cPresenceChart', (multi.length ? multi : cross).slice(0, 10));
+    generateCrossInsights(cross);
   }, 50);
 }
 
-// ── Platform-specific view (renderPlatform re-declared at bottom) ──────────
+// ── Platform view dispatcher ───────────────────────────────────────────────
+function renderPlatformView(el, platform) {
+  if (!hasData(platform)) {
+    el.innerHTML = `<div class="empty-state"><h3>No ${PLAT[platform].label} data loaded</h3><p>Upload a CSV using the slots above.</p></div>`;
+    return;
+  }
+  if (platform === 'google')    renderGoogle(el);
+  else if (platform === 'tiktok')    renderTikTok(el);
+  else if (platform === 'pinterest') renderPinterest(el);
+}
 
-// Timeseries view (Google / Pinterest / TikTok timeseries)
-function renderTimeseries(el, platform, data) {
-  const stats = analyzeTimeSeries(data);
-  if (!stats) { el.innerHTML = '<div class="empty-state"><h3>Could not analyse data</h3></div>'; return; }
-
-  const byLatest  = [...data.keywords].filter(k => stats[k]).sort((a, b) => (stats[b].latest  || 0) - (stats[a].latest  || 0));
-  const byGrowth  = [...data.keywords].filter(k => stats[k]).sort((a, b) => (stats[b].growth  || 0) - (stats[a].growth  || 0));
-  const top       = byLatest[0];
-  const fastest   = byGrowth[0];
+// ── Google view ────────────────────────────────────────────────────────────
+function renderGoogle(el) {
+  const top    = state.google.top?.terms    || [];
+  const rising = state.google.rising?.terms || [];
+  const topS   = [...top].sort((a, b) => b.searchInterest - a.searchInterest);
+  const riseS  = [...rising].sort((a, b) => {
+    if (a.isBreakout !== b.isBreakout) return a.isBreakout ? -1 : 1;
+    return (b.change || 0) - (a.change || 0);
+  });
+  const breakoutCount = rising.filter(t => t.isBreakout).length;
 
   el.innerHTML = `
-    <div class="section-hd">
-      <div>
-        <div class="section-title">${PLAT[platform].label} <em>Trends</em></div>
-        <div class="section-sub">${data.keywords.length} keywords · ${data.series.length} time periods</div>
-      </div>
-    </div>
-
+    <div class="section-hd"><div>
+      <div class="section-title">Google <em>Trends</em></div>
+      <div class="section-sub">${top.length ? top.length + ' top queries' : ''}${top.length && rising.length ? ' · ' : ''}${rising.length ? rising.length + ' rising queries' : ''}</div>
+    </div></div>
     <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-label">Keywords Tracked</div>
-        <div class="stat-value">${data.keywords.length}</div>
-        <div class="stat-sub">${data.series.length} data points</div>
-      </div>
-      <div class="stat-card accent">
-        <div class="stat-label">Top Keyword</div>
-        <div class="stat-value" style="font-size:18px">${cap(top)}</div>
-        <div class="stat-sub">Interest: ${Math.round(stats[top]?.latest || 0)}/100</div>
-      </div>
-      <div class="stat-card dark">
-        <div class="stat-label">Fastest Growing</div>
-        <div class="stat-value" style="font-size:18px">${cap(fastest)}</div>
-        <div class="stat-sub">+${Math.round(stats[fastest]?.growth || 0)}% over period</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Peak Interest</div>
-        <div class="stat-value">${Math.max(...data.keywords.map(k => stats[k]?.peak || 0)).toFixed(0)}</div>
-        <div class="stat-sub">highest recorded value</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Total Queries</div><div class="stat-value">${top.length + rising.length}</div><div class="stat-sub">${top.length} top · ${rising.length} rising</div></div>
+      ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 Top Query</div><div class="stat-value" style="font-size:18px">${cap(topS[0].query)}</div><div class="stat-sub">Interest: ${topS[0].searchInterest}</div></div>` : ''}
+      ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">#1 Rising Query</div><div class="stat-value" style="font-size:18px">${cap(riseS[0].query)}</div><div class="stat-sub">${riseS[0].isBreakout ? 'Breakout' : '+' + (riseS[0].change || 0).toFixed(0) + '%'}</div></div>` : ''}
+      <div class="stat-card"><div class="stat-label">Breakout Terms</div><div class="stat-value">${breakoutCount}</div><div class="stat-sub">brand-new search queries</div></div>
     </div>
-
-    <div class="chart-row single">
-      <div class="chart-card">
-        <h3>Interest Over Time</h3>
-        <p class="chart-desc">Search / interest score (0–100) across the selected period</p>
-        <div class="chart-wrap" style="height:320px"><canvas id="pLineChart"></canvas></div>
-      </div>
+    <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
+      ${top.length ? `<div class="chart-card"><h3>Top Queries — Search Interest</h3><p class="chart-desc">Relative search volume (0–100 normalised)</p><div class="chart-wrap" style="height:280px"><canvas id="gTopChart"></canvas></div></div>` : ''}
+      ${rising.length ? `<div class="chart-card"><h3>Rising Queries — Growth</h3><p class="chart-desc">Breakout terms shown at max scale</p><div class="chart-wrap" style="height:280px"><canvas id="gRisingChart"></canvas></div></div>` : ''}
     </div>
-
-    <div class="chart-row">
-      <div class="chart-card">
-        <h3>Latest Interest Score</h3>
-        <p class="chart-desc">Most recent data point per keyword</p>
-        <div class="chart-wrap" style="height:260px"><canvas id="pLatestChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <h3>Growth Over Period</h3>
-        <p class="chart-desc">Change from first to last data point</p>
-        <div class="chart-wrap" style="height:260px"><canvas id="pGrowthChart"></canvas></div>
-      </div>
-    </div>
-
-    <div class="table-section">
-      <div class="section-hd"><div class="section-title">Keyword <em>Breakdown</em></div></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>#</th><th>Keyword</th><th>Latest</th><th>Peak</th><th>Average</th><th>Growth</th><th>Momentum</th>
-          </tr></thead>
-          <tbody>
-            ${byLatest.map((kw, i) => {
-              const s = stats[kw]; if (!s) return '';
-              return `<tr>
-                <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
-                <td class="td-bold">${cap(kw)}</td>
-                <td class="td-green">${Math.round(s.latest)}</td>
-                <td>${Math.round(s.peak)}</td>
-                <td>${s.avg.toFixed(1)}</td>
-                <td>${growthBadge(s.growth)}</td>
-                <td>${s.momentum > 5 ? '<span class="badge-accel">Accelerating</span>' : s.momentum < -5 ? '<span class="badge-decel">Decelerating</span>' : '<span class="badge-flat">Stable</span>'}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="insights-card">
-      <div class="insights-hd"><div class="insights-icon">💡</div><h3>${PLAT[platform].label} Insights</h3></div>
-      <div class="insights-body" id="platInsights"></div>
-    </div>`;
+    ${top.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Top <em>Queries</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Query</th><th>Search Interest</th></tr></thead>
+        <tbody>${topS.map((t, i) => `<tr>
+          <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
+          <td class="td-bold">${cap(t.query)}</td>
+          <td class="td-green">${t.searchInterest}</td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>` : ''}
+    ${rising.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Rising <em>Queries</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Query</th><th>Search Interest</th><th>Growth</th></tr></thead>
+        <tbody>${riseS.map((t, i) => `<tr>
+          <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
+          <td class="td-bold">${cap(t.query)}</td>
+          <td>${t.searchInterest}</td>
+          <td>${t.isBreakout ? '<span class="badge-breakout">Breakout</span>' : growthBadge(t.change, false)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>` : ''}
+    <div class="insights-card"><div class="insights-hd"><div class="insights-icon">💡</div><h3>Google Insights</h3></div><div class="insights-body" id="platInsights"></div></div>`;
 
   setTimeout(() => {
-    chartLine('pLineChart', data, stats);
-    chartLatest('pLatestChart', byLatest, stats);
-    chartGrowth('pGrowthChart', byGrowth, stats);
+    if (top.length) {
+      const t10 = topS.slice(0, 10);
+      mkHorizBar('gTopChart', t10.map(t => cap(t.query)), t10.map(t => t.searchInterest),
+        t10.map((_, i) => i === 0 ? '#4285F4' : i < 3 ? '#4285F4bb' : '#4285F444'), 'Search Interest');
+    }
+    if (rising.length) {
+      const r10 = riseS.slice(0, 10);
+      mkHorizBar('gRisingChart', r10.map(t => cap(t.query)), r10.map(t => t.isBreakout ? 500 : (t.change || 0)),
+        r10.map(t => t.isBreakout ? '#007A33' : '#4285F4'), 'Growth %');
+    }
+    generateGoogleInsights(state.google);
   }, 50);
 }
 
-// Ranking view (TikTok hashtag tables)
-function renderRanking(el, platform, data) {
-  const { topics } = data;
-  const byViews  = [...topics].filter(t => t.views  !== null).sort((a, b) => b.views  - a.views);
-  const byGrowth = [...topics].filter(t => t.growth !== null).sort((a, b) => b.growth - a.growth);
-  const avgGrowth = byGrowth.length ? byGrowth.reduce((s, t) => s + t.growth, 0) / byGrowth.length : null;
+// ── TikTok view ────────────────────────────────────────────────────────────
+function renderTikTok(el) {
+  const top    = state.tiktok.top?.terms    || [];
+  const rising = state.tiktok.rising?.terms || [];
+  const topS   = [...top].sort((a, b) => (b.views || 0) - (a.views || 0));
+  const riseS  = [...rising].sort((a, b) => (b.rankChange || 0) - (a.rankChange || 0));
+  const avgRC  = riseS.filter(t => t.rankChange != null).length
+    ? (riseS.filter(t => t.rankChange != null).reduce((s, t) => s + t.rankChange, 0) / riseS.filter(t => t.rankChange != null).length).toFixed(1)
+    : null;
 
   el.innerHTML = `
-    <div class="section-hd">
-      <div>
-        <div class="section-title">${PLAT[platform].label} <em>Trends</em></div>
-        <div class="section-sub">${topics.length} trending topics</div>
-      </div>
-    </div>
-
+    <div class="section-hd"><div>
+      <div class="section-title">TikTok <em>Trends</em></div>
+      <div class="section-sub">${top.length ? top.length + ' top hashtags' : ''}${top.length && rising.length ? ' · ' : ''}${rising.length ? rising.length + ' rising hashtags' : ''}</div>
+    </div></div>
     <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-label">Topics Tracked</div>
-        <div class="stat-value">${topics.length}</div>
-        <div class="stat-sub">from uploaded file</div>
-      </div>
-      <div class="stat-card accent">
-        <div class="stat-label">#1 by Volume</div>
-        <div class="stat-value" style="font-size:18px">${byViews[0] ? cap(byViews[0].name) : '—'}</div>
-        <div class="stat-sub">${byViews[0]?.views !== null ? fmtCompact(byViews[0].views) + ' views' : ''}</div>
-      </div>
-      <div class="stat-card dark">
-        <div class="stat-label">Fastest Growing</div>
-        <div class="stat-value" style="font-size:18px">${byGrowth[0] ? cap(byGrowth[0].name) : '—'}</div>
-        <div class="stat-sub">${byGrowth[0]?.growth !== null ? '+' + byGrowth[0].growth.toFixed(0) + '% growth' : ''}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Avg Growth Rate</div>
-        <div class="stat-value">${avgGrowth !== null ? '+' + avgGrowth.toFixed(0) + '%' : '—'}</div>
-        <div class="stat-sub">across all topics</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Total Hashtags</div><div class="stat-value">${top.length + rising.length}</div><div class="stat-sub">${top.length} top · ${rising.length} rising</div></div>
+      ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Views</div><div class="stat-value" style="font-size:18px">#${cap(topS[0].name)}</div><div class="stat-sub">${topS[0].views != null ? fmtCompact(topS[0].views) + ' views' : 'Rank ' + topS[0].rankPosition}</div></div>` : ''}
+      ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">Biggest Rank Climber</div><div class="stat-value" style="font-size:18px">#${cap(riseS[0].name)}</div><div class="stat-sub">${riseS[0].rankChange != null ? '+' + riseS[0].rankChange + ' positions' : ''}</div></div>` : ''}
+      <div class="stat-card"><div class="stat-label">Avg Rank Change</div><div class="stat-value">${avgRC != null ? '+' + avgRC : '—'}</div><div class="stat-sub">across rising hashtags</div></div>
     </div>
-
-    <div class="chart-row">
-      ${byViews.length  ? `<div class="chart-card"><h3>Views by Topic</h3><p class="chart-desc">Total accumulated views</p><div class="chart-wrap" style="height:300px"><canvas id="rViewsChart"></canvas></div></div>` : ''}
-      ${byGrowth.length ? `<div class="chart-card"><h3>Growth Rate by Topic</h3><p class="chart-desc">Period growth percentage</p><div class="chart-wrap" style="height:300px"><canvas id="rGrowthChart"></canvas></div></div>` : ''}
+    <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
+      ${top.length ? `<div class="chart-card"><h3>Top Hashtags — Views</h3><p class="chart-desc">Total views per hashtag</p><div class="chart-wrap" style="height:300px"><canvas id="ttTopChart"></canvas></div></div>` : ''}
+      ${rising.length ? `<div class="chart-card"><h3>Rising Hashtags — Rank Change</h3><p class="chart-desc">Positions climbed in ranking</p><div class="chart-wrap" style="height:300px"><canvas id="ttRisingChart"></canvas></div></div>` : ''}
     </div>
-
-    <div class="table-section">
-      <div class="section-hd"><div class="section-title">Trending <em>Topics</em></div></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>Rank</th><th>Hashtag / Topic</th>
-            ${byViews.length  ? '<th>Total Views</th>' : ''}
-            ${byGrowth.length ? '<th>Growth</th>'      : ''}
-            ${topics.some(t => t.posts !== null) ? '<th>Posts</th>' : ''}
-          </tr></thead>
-          <tbody>
-            ${byViews.map((t, i) => `<tr>
-              <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
-              <td class="td-bold">#${cap(t.name)}</td>
-              ${byViews.length  ? `<td class="td-green">${fmtCompact(t.views)}</td>` : ''}
-              ${byGrowth.length ? `<td>${t.growth !== null ? growthBadge(t.growth) : '—'}</td>` : ''}
-              ${topics.some(x => x.posts !== null) ? `<td>${t.posts !== null ? fmtCompact(t.posts) : '—'}</td>` : ''}
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="insights-card">
-      <div class="insights-hd"><div class="insights-icon">💡</div><h3>${PLAT[platform].label} Insights</h3></div>
-      <div class="insights-body" id="platInsights"></div>
-    </div>`;
+    ${top.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Top <em>Hashtags</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Rank</th><th>Hashtag</th><th>Views</th><th>Lifetime Views</th><th>Posts</th></tr></thead>
+        <tbody>${topS.map((t, i) => `<tr>
+          <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${t.rankPosition || i + 1}</td>
+          <td class="td-bold">#${cap(t.name)}</td>
+          <td class="td-green">${t.views != null ? fmtCompact(t.views) : '—'}</td>
+          <td>${t.viewsLifetime != null ? fmtCompact(t.viewsLifetime) : '—'}</td>
+          <td>${t.posts != null ? fmtCompact(t.posts) : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>` : ''}
+    ${rising.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Rising <em>Hashtags</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Rank</th><th>Hashtag</th><th>Rank Position</th><th>Rank Change</th><th>Views</th><th>Posts</th></tr></thead>
+        <tbody>${riseS.map((t, i) => `<tr>
+          <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
+          <td class="td-bold">#${cap(t.name)}</td>
+          <td>${t.rankPosition || '—'}</td>
+          <td>${t.rankChange != null ? growthBadge(t.rankChange, false) : '—'}</td>
+          <td>${t.views != null ? fmtCompact(t.views) : '—'}</td>
+          <td>${t.posts != null ? fmtCompact(t.posts) : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>` : ''}
+    <div class="insights-card"><div class="insights-hd"><div class="insights-icon">💡</div><h3>TikTok Insights</h3></div><div class="insights-body" id="platInsights"></div></div>`;
 
   setTimeout(() => {
-    if (byViews.length)  chartRankingViews('rViewsChart',   byViews.slice(0, 10),  PLAT[platform].color);
-    if (byGrowth.length) chartRankingGrowth('rGrowthChart', byGrowth.slice(0, 10), PLAT[platform].color);
+    if (top.length) {
+      const t10 = topS.slice(0, 10);
+      mkHorizBar('ttTopChart', t10.map(t => '#' + cap(t.name)), t10.map(t => t.views || 0),
+        t10.map((_, i) => i === 0 ? '#111' : '#555'), 'Views', v => fmtCompact(v));
+    }
+    if (rising.length) {
+      const r10 = riseS.slice(0, 10);
+      mkHorizBar('ttRisingChart', r10.map(t => '#' + cap(t.name)), r10.map(t => t.rankChange || 0),
+        r10.map(t => (t.rankChange || 0) >= 0 ? '#111' : '#E60023'), 'Rank Change');
+    }
+    generateTikTokInsights(state.tiktok);
   }, 50);
 }
 
-// ── Chart renderers ────────────────────────────────────────────────────────
+// ── Pinterest view ─────────────────────────────────────────────────────────
+function renderPinterest(el) {
+  const top    = state.pinterest.top?.terms    || [];
+  const rising = state.pinterest.rising?.terms || [];
+  const topS   = [...top].sort((a, b) => (b.normVolume || 0) - (a.normVolume || 0));
+  const riseS  = [...rising].sort((a, b) => (b.weeklyChange || b.monthlyChange || 0) - (a.weeklyChange || a.monthlyChange || 0));
+  const strongYoY = [...top, ...rising].filter(t => (t.yearlyChange || 0) > 50).length;
 
-const SERIES_COLORS = ['#007A33','#4285F4','#E60023','#FF6B00','#805AD5','#2B6CB0','#D69E2E','#C05621','#2D3748','#553C9A'];
+  el.innerHTML = `
+    <div class="section-hd"><div>
+      <div class="section-title">Pinterest <em>Trends</em></div>
+      <div class="section-sub">${top.length ? top.length + ' top trends' : ''}${top.length && rising.length ? ' · ' : ''}${rising.length ? rising.length + ' rising trends' : ''}</div>
+    </div></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total Trends</div><div class="stat-value">${top.length + rising.length}</div><div class="stat-sub">${top.length} top · ${rising.length} rising</div></div>
+      ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Search Volume</div><div class="stat-value" style="font-size:18px">${cap(topS[0].term)}</div><div class="stat-sub">Volume: ${topS[0].normVolume || '—'}/100</div></div>` : ''}
+      ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">#1 Rising Trend</div><div class="stat-value" style="font-size:18px">${cap(riseS[0].term)}</div><div class="stat-sub">${riseS[0].weeklyChange != null ? (riseS[0].weeklyChange > 0 ? '+' : '') + riseS[0].weeklyChange + '% weekly' : ''}</div></div>` : ''}
+      <div class="stat-card"><div class="stat-label">Strong YoY Growth</div><div class="stat-value">${strongYoY}</div><div class="stat-sub">trends up &gt;50% year-on-year</div></div>
+    </div>
+    <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
+      ${top.length ? `<div class="chart-card"><h3>Top Trends — Search Volume</h3><p class="chart-desc">Normalised search volume (0–100)</p><div class="chart-wrap" style="height:300px"><canvas id="piTopChart"></canvas></div></div>` : ''}
+      ${rising.length ? `<div class="chart-card"><h3>Rising Trends — Weekly Change</h3><p class="chart-desc">Week-on-week search volume change</p><div class="chart-wrap" style="height:300px"><canvas id="piRisingChart"></canvas></div></div>` : ''}
+    </div>
+    ${top.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Top <em>Trends</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Rank</th><th>Trend</th><th>Volume</th><th>Weekly</th><th>Monthly</th><th>Yearly</th></tr></thead>
+        <tbody>${topS.map((t, i) => `<tr>
+          <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${t.rank || i + 1}</td>
+          <td class="td-bold">${cap(t.term)}</td>
+          <td class="td-green">${t.normVolume != null ? t.normVolume : '—'}</td>
+          <td>${t.weeklyChange  != null ? growthBadge(t.weeklyChange,  false) : '—'}</td>
+          <td>${t.monthlyChange != null ? growthBadge(t.monthlyChange, false) : '—'}</td>
+          <td>${t.yearlyChange  != null ? growthBadge(t.yearlyChange,  false) : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>` : ''}
+    ${rising.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Rising <em>Trends</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Rank</th><th>Trend</th><th>Volume</th><th>Weekly</th><th>Monthly</th><th>Yearly</th></tr></thead>
+        <tbody>${riseS.map((t, i) => `<tr>
+          <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${t.rank || i + 1}</td>
+          <td class="td-bold">${cap(t.term)}</td>
+          <td>${t.normVolume != null ? t.normVolume : '—'}</td>
+          <td>${t.weeklyChange  != null ? growthBadge(t.weeklyChange,  false) : '—'}</td>
+          <td>${t.monthlyChange != null ? growthBadge(t.monthlyChange, false) : '—'}</td>
+          <td>${t.yearlyChange  != null ? growthBadge(t.yearlyChange,  false) : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>` : ''}
+    <div class="insights-card"><div class="insights-hd"><div class="insights-icon">💡</div><h3>Pinterest Insights</h3></div><div class="insights-body" id="platInsights"></div></div>`;
 
-function chartLine(id, data, stats) {
-  const ctx = document.getElementById(id); if (!ctx) return;
-  charts[id] = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.series.map(s => dateLbl(s.date)),
-      datasets: data.keywords.map((kw, i) => ({
-        label: cap(kw),
-        data: data.series.map(s => s.values[kw]),
-        borderColor: SERIES_COLORS[i % SERIES_COLORS.length],
-        backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length] + '12',
-        borderWidth: 2,
-        pointRadius: data.series.length > 20 ? 0 : 3,
-        tension: 0.35, fill: false, spanGaps: true,
-      }))
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, usePointStyle: true } },
-        tooltip: { mode: 'index', intersect: false, ...darkTooltip() },
-      },
-      scales: {
-        x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, maxRotation: 45, maxTicksLimit: 12 } },
-        y: { min: 0, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } }, title: { display: true, text: 'Interest (0–100)', font: { size: 11 }, color: '#888' } },
-      },
-    },
-  });
+  setTimeout(() => {
+    if (top.length) {
+      const t10 = topS.slice(0, 10);
+      mkHorizBar('piTopChart', t10.map(t => cap(t.term)), t10.map(t => t.normVolume || 0),
+        t10.map((_, i) => i === 0 ? '#E60023' : i < 3 ? '#E60023bb' : '#E6002344'), 'Volume');
+    }
+    if (rising.length) {
+      const r10 = riseS.slice(0, 10);
+      mkHorizBar('piRisingChart', r10.map(t => cap(t.term)), r10.map(t => t.weeklyChange || t.monthlyChange || 0),
+        r10.map(t => (t.weeklyChange || t.monthlyChange || 0) >= 0 ? '#E60023' : '#888'), 'Change %', v => v + '%');
+    }
+    generatePinterestInsights(state.pinterest);
+  }, 50);
 }
 
-function chartLatest(id, keywords, stats) {
+// ── Chart helpers ──────────────────────────────────────────────────────────
+function mkHorizBar(id, labels, data, colors, label, tickFmt) {
   const ctx = document.getElementById(id); if (!ctx) return;
   charts[id] = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels: keywords.map(k => cap(k)),
-      datasets: [{ data: keywords.map(k => Math.round(stats[k]?.latest || 0)), backgroundColor: keywords.map((_, i) => i === 0 ? '#007A33' : i < 3 ? '#4ade80' : '#d1fae5'), borderRadius: 6 }],
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 30 } }, y: { min: 0, grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } } } },
-  });
-}
-
-function chartGrowth(id, keywords, stats) {
-  const ctx = document.getElementById(id); if (!ctx) return;
-  charts[id] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: keywords.map(k => cap(k)),
-      datasets: [{ data: keywords.map(k => parseFloat((stats[k]?.growth || 0).toFixed(1))), backgroundColor: keywords.map(k => (stats[k]?.growth || 0) >= 0 ? '#007A33' : '#E60023'), borderRadius: 6 }],
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 30 } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, callback: v => v + '%' } } } },
-  });
-}
-
-function chartMomentum(id, data) {
-  const ctx = document.getElementById(id); if (!ctx) return;
-  charts[id] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: data.map(d => cap(d.keyword)),
-      datasets: [{ data: data.map(d => Math.round(d.momentum)), backgroundColor: data.map((_, i) => i === 0 ? '#007A33' : i < 3 ? '#4ade80' : '#d1fae5'), borderRadius: 6 }],
-    },
+    data: { labels, datasets: [{ label, data, backgroundColor: colors, borderRadius: 5 }] },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `Score: ${ctx.raw} · ${data[ctx.dataIndex].platforms.map(p => PLAT[p].label).join(', ')}` } } },
-      scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } }, y: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, callback: tickFmt || (v => v) } },
+        y: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } },
+      },
     },
   });
 }
 
 function chartPresence(id, data) {
   const ctx = document.getElementById(id); if (!ctx) return;
-  const loaded = ['google','tiktok','pinterest'].filter(p => state[p]);
+  const loaded = ['google','tiktok','pinterest'].filter(hasData);
   charts[id] = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: data.map(d => cap(d.keyword)),
       datasets: loaded.map(p => ({
         label: PLAT[p].label,
-        data: data.map(d => d.platforms.includes(p) ? 1 : 0),
-        backgroundColor: PLAT[p].color,
-        borderRadius: 3,
+        data:  data.map(d => d.platforms.includes(p) ? 1 : 0),
+        backgroundColor: PLAT[p].color, borderRadius: 3,
       })),
     },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw ? 'Trending' : 'Not detected'}` } } },
-      scales: { x: { stacked: true, display: false, max: loaded.length }, y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw ? 'Trending' : 'Not detected'}` } },
+      },
+      scales: {
+        x: { stacked: true, display: false, max: loaded.length },
+        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } },
+      },
     },
   });
 }
 
-function chartRankingViews(id, topics, color) {
-  const ctx = document.getElementById(id); if (!ctx) return;
-  charts[id] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: topics.map(t => '#' + cap(t.name)),
-      datasets: [{ data: topics.map(t => t.views || 0), backgroundColor: topics.map((_, i) => i === 0 ? color : color + '88'), borderRadius: 6 }],
-    },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, callback: v => fmtCompact(v) } }, y: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
-    },
+// ── Insight generators ─────────────────────────────────────────────────────
+function insightHTML(bullets) {
+  return bullets.map(b => `<div class="insight-row"><div class="insight-dot"></div><div class="insight-text">${b}</div></div>`).join('');
+}
+
+function generateCrossInsights(cross) {
+  const el = document.getElementById('crossInsights'); if (!el) return;
+  const multi     = cross.filter(d => d.platforms.length > 1);
+  const top       = cross[0];
+  const breakouts = cross.filter(d => d.hasBreakout);
+  const growing   = cross.filter(d => d.avgGrowth > 20).slice(0, 3);
+  const bullets   = [];
+
+  if (top) {
+    const platStr  = top.platforms.map(p => `<strong>${PLAT[p].label}</strong>`).join(', ');
+    const brkStr   = top.hasBreakout ? ', including a <strong>Breakout</strong> signal on Google' : '';
+    bullets.push(`<strong>${cap(top.keyword)}</strong> leads cross-platform momentum, active across ${platStr}${brkStr}. This convergence is a high-confidence content signal for M&S.`);
+  }
+  if (multi.length) {
+    const names = multi.slice(0, 3).map(d => `<strong>${cap(d.keyword)}</strong>`).join(', ');
+    bullets.push(`<strong>${multi.length}</strong> trend${multi.length > 1 ? 's are' : ' is'} appearing across 2+ platforms: ${names}. Cross-platform convergence is the strongest investment signal — audiences are searching, watching and saving this content simultaneously.`);
+  }
+  if (breakouts.length) {
+    const bList = breakouts.slice(0, 3).map(d => `<strong>${cap(d.keyword)}</strong>`).join(', ');
+    bullets.push(`<strong>${breakouts.length}</strong> Google Breakout term${breakouts.length > 1 ? 's' : ''} detected: ${bList}. Breakout queries have seen explosive growth from a near-zero base — brief content teams immediately to capture first-mover advantage.`);
+  }
+  if (growing.length) {
+    const list = growing.map(d => `<strong>${cap(d.keyword)}</strong> (+${d.avgGrowth.toFixed(0)}%)`).join(', ');
+    bullets.push(`High-velocity trends: ${list}. These are accelerating now — optimal window for content briefing before the trend peaks.`);
+  }
+  ['google','tiktok','pinterest'].forEach(p => {
+    if (!hasData(p)) return;
+    const excl = cross.filter(d => d.platforms.length === 1 && d.platforms[0] === p).slice(0, 2);
+    if (excl.length) {
+      bullets.push(`<strong>${PLAT[p].label}-exclusive:</strong> ${excl.map(d => `<strong>${cap(d.keyword)}</strong>`).join(' and ')} ${excl.length > 1 ? 'are' : 'is'} only trending on ${PLAT[p].label}. Monitor for cross-platform breakout.`);
+    }
   });
+
+  el.innerHTML = insightHTML(bullets.length ? bullets : ['Upload data from multiple platforms to generate cross-platform insights.']);
 }
 
-function chartRankingGrowth(id, topics, color) {
-  const ctx = document.getElementById(id); if (!ctx) return;
-  charts[id] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: topics.map(t => '#' + cap(t.name)),
-      datasets: [{ data: topics.map(t => t.growth || 0), backgroundColor: topics.map(t => (t.growth || 0) >= 0 ? color : '#E60023'), borderRadius: 6 }],
-    },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, callback: v => v + '%' } }, y: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } } },
-    },
-  });
+function generateGoogleInsights(p) {
+  const el = document.getElementById('platInsights'); if (!el) return;
+  const top      = p.top?.terms    || [];
+  const rising   = p.rising?.terms || [];
+  const topS     = [...top].sort((a, b) => b.searchInterest - a.searchInterest);
+  const breakouts= rising.filter(t => t.isBreakout);
+  const bigG     = rising.filter(t => !t.isBreakout && (t.change || 0) > 100).sort((a, b) => b.change - a.change);
+  const overlap  = top.filter(tt => rising.some(rt => norm(rt.query) === norm(tt.query)));
+  const bullets  = [];
+
+  if (topS[0]) bullets.push(`<strong>${cap(topS[0].query)}</strong> leads by search interest at <strong>${topS[0].searchInterest}/100</strong>. ${topS[0].searchInterest >= 70 ? 'Peak-level demand — highest-priority keyword for content and paid search.' : 'Mid-level demand with strong content investment case.'}`);
+  if (breakouts.length) {
+    const bList = breakouts.slice(0, 4).map(t => `<strong>${cap(t.query)}</strong>`).join(', ');
+    bullets.push(`<strong>${breakouts.length} Breakout</strong> quer${breakouts.length > 1 ? 'ies' : 'y'}: ${bList}. Breakout terms have seen >5,000% growth — the most time-sensitive opportunities. Brief content teams immediately.`);
+  }
+  if (bigG.length) {
+    const gList = bigG.slice(0, 3).map(t => `<strong>${cap(t.query)}</strong> (+${t.change.toFixed(0)}%)`).join(', ');
+    bullets.push(`High-growth rising queries: ${gList}. Triple-digit growth signals a trend entering mainstream consciousness — ideal timing for M&S hero content.`);
+  }
+  if (overlap.length) {
+    bullets.push(`${overlap.slice(0, 3).map(t => `<strong>${cap(t.query)}</strong>`).join(', ')} appear${overlap.length === 1 ? 's' : ''} in both top and rising exports — established volume plus growing momentum. Highest-priority for always-on and campaign content.`);
+  }
+
+  el.innerHTML = insightHTML(bullets.length ? bullets : ['Upload Google top and/or rising queries CSV to generate insights.']);
 }
 
-// ── Shared chart helpers ───────────────────────────────────────────────────
-function darkTooltip() {
-  return { backgroundColor: '#0a0a0a', titleColor: '#fff', bodyColor: '#ccc', padding: 12, cornerRadius: 8 };
+function generateTikTokInsights(p) {
+  const el = document.getElementById('platInsights'); if (!el) return;
+  const top    = p.top?.terms    || [];
+  const rising = p.rising?.terms || [];
+  const topS   = [...top].sort((a, b) => (b.views || 0) - (a.views || 0));
+  const riseS  = [...rising].sort((a, b) => (b.rankChange || 0) - (a.rankChange || 0));
+  const fastC  = riseS.filter(t => (t.rankChange || 0) > 5);
+  const overlap= top.filter(tt => rising.some(rt => norm(rt.name) === norm(tt.name)));
+  const bullets= [];
+
+  if (topS[0]) bullets.push(`<strong>#${cap(topS[0].name)}</strong> dominates by volume with <strong>${fmtCompact(topS[0].views)}</strong> views. Mass-market TikTok reach — M&S content using this hashtag has the highest organic discovery potential.`);
+  if (riseS[0]?.rankChange > 0) bullets.push(`<strong>#${cap(riseS[0].name)}</strong> is the biggest rank climber, up <strong>${riseS[0].rankChange}</strong> position${riseS[0].rankChange !== 1 ? 's' : ''}. Rapidly climbing hashtags are entering peak discovery windows — optimal moment to post content.`);
+  if (fastC.length > 1) bullets.push(`<strong>${fastC.length}</strong> hashtags are climbing 5+ positions: ${fastC.slice(0, 3).map(t => `<strong>#${cap(t.name)}</strong>`).join(', ')}. Rapid rank acceleration signals the algorithm's amplification phase.`);
+  if (overlap.length) bullets.push(`${overlap.slice(0, 3).map(t => `<strong>#${cap(t.name)}</strong>`).join(', ')} appear${overlap.length === 1 ? 's' : ''} in both top and rising exports — established volume plus rising momentum is the strongest hashtag signal for M&S.`);
+
+  el.innerHTML = insightHTML(bullets.length ? bullets : ['Upload TikTok hashtag CSV to generate insights.']);
 }
 
-function dateLbl(date) {
-  return date ? date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+function generatePinterestInsights(p) {
+  const el = document.getElementById('platInsights'); if (!el) return;
+  const top    = p.top?.terms    || [];
+  const rising = p.rising?.terms || [];
+  const all    = [...top, ...rising];
+  const topS   = [...top].sort((a, b) => (b.normVolume || 0) - (a.normVolume || 0));
+  const riseS  = [...rising].filter(t => t.weeklyChange != null).sort((a, b) => b.weeklyChange - a.weeklyChange);
+  const strongYoY = all.filter(t => (t.yearlyChange || 0) > 100).slice(0, 3);
+  const negWeekly = all.filter(t => (t.weeklyChange || 0) < -20).slice(0, 2);
+  const bullets   = [];
+
+  if (topS[0]) bullets.push(`<strong>${cap(topS[0].term)}</strong> leads Pinterest search with a volume of <strong>${topS[0].normVolume}/100</strong>. Pinterest search intent often precedes purchase — this signals active product discovery behaviour.`);
+  if (riseS[0]?.weeklyChange > 0) bullets.push(`<strong>${cap(riseS[0].term)}</strong> is the fastest growing trend this week at <strong>+${riseS[0].weeklyChange}%</strong>. Weekly Pinterest acceleration often leads broader cultural trend emergence by 2–4 weeks.`);
+  if (strongYoY.length) {
+    const list = strongYoY.map(t => `<strong>${cap(t.term)}</strong> (+${t.yearlyChange}% YoY)`).join(', ');
+    bullets.push(`Year-on-year standouts: ${list}. Strong YoY growth signals sustained seasonal demand — anchor M&S seasonal content planning and product editorial around these.`);
+  }
+  if (negWeekly.length) {
+    const list = negWeekly.map(t => `<strong>${cap(t.term)}</strong> (${t.weeklyChange}% weekly)`).join(' and ');
+    bullets.push(`${list} ${negWeekly.length > 1 ? 'are' : 'is'} declining week-on-week. Check whether declining Pinterest interest is reflected across other platforms before reducing content investment.`);
+  }
+
+  el.innerHTML = insightHTML(bullets.length ? bullets : ['Upload Pinterest trends CSV to generate insights.']);
 }
 
 // ── Display helpers ────────────────────────────────────────────────────────
-function cap(s) {
-  if (!s) return '';
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function growthBadge(g) {
-  if (g === null || g === undefined) return '<span class="badge-flat">—</span>';
-  if (g > 0)  return `<span class="badge-up">+${g.toFixed(0)}%</span>`;
-  if (g < 0)  return `<span class="badge-down">${g.toFixed(0)}%</span>`;
-  return '<span class="badge-flat">Flat</span>';
-}
-
+function cap(s)        { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 function fmtCompact(n) {
-  if (n === null || n === undefined) return '—';
+  if (n == null) return '—';
   if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
   if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return Math.round(n).toLocaleString();
 }
-
-// ── Insight generators ─────────────────────────────────────────────────────
-
-function insightHTML(bullets) {
-  return bullets.map(b => `
-    <div class="insight-row">
-      <div class="insight-dot"></div>
-      <div class="insight-text">${b}</div>
-    </div>`).join('');
-}
-
-function generateCrossInsights(cross) {
-  const el = document.getElementById('crossInsights');
-  if (!el) return;
-  const bullets = [];
-  const multi    = cross.filter(d => d.platforms.length > 1);
-  const top      = cross[0];
-  const emerging = cross.filter(d => d.avgGrowth > 30).slice(0, 3);
-  const loaded   = ['google','tiktok','pinterest'].filter(p => state[p]);
-
-  if (!cross.length) {
-    el.innerHTML = insightHTML(['Upload data from at least one platform to generate insights.']);
-    return;
-  }
-
-  // Lead insight — top momentum trend
-  if (top) {
-    const platStr  = top.platforms.map(p => `<strong>${PLAT[p].label}</strong>`).join(', ');
-    const growthStr = top.avgGrowth > 0 ? `, with a <strong>+${top.avgGrowth.toFixed(0)}%</strong> average growth signal` : '';
-    bullets.push(`<strong>${cap(top.keyword)}</strong> leads the momentum ranking, active across ${platStr}${growthStr}. Its cross-platform presence signals broad cultural resonance — a high-confidence content opportunity for M&S.`);
-  }
-
-  // Cross-platform convergence
-  if (multi.length > 0) {
-    const names = multi.slice(0, 3).map(d => `<strong>${cap(d.keyword)}</strong>`).join(', ');
-    bullets.push(`${multi.length} trend${multi.length > 1 ? 's are' : ' is'} converging across platforms simultaneously: ${names}. Convergent trends carry the strongest signal for content investment — audiences are actively searching, watching and saving this content.`);
-  } else if (loaded.length > 1) {
-    bullets.push(`No trends are currently matching across multiple platforms. This may indicate the keywords tracked differ per platform — consider aligning search terms to find overlapping signals.`);
-  }
-
-  // Emerging / fast-growing
-  if (emerging.length > 0) {
-    const list = emerging.map(d => `<strong>${cap(d.keyword)}</strong> (+${d.avgGrowth.toFixed(0)}%)`).join(', ');
-    bullets.push(`High-velocity emerging trends to watch: ${list}. These are accelerating quickly — early activation now allows M&S to establish presence before the trend peaks and CPCs rise.`);
-  }
-
-  // Platform-exclusive signals
-  ['google','tiktok','pinterest'].forEach(p => {
-    if (!state[p]) return;
-    const exclusive = cross.filter(d => d.platforms.length === 1 && d.platforms[0] === p).slice(0, 2);
-    if (exclusive.length) {
-      const names = exclusive.map(d => `<strong>${cap(d.keyword)}</strong>`).join(' and ');
-      bullets.push(`${PLAT[p].label}-exclusive: ${names} ${exclusive.length > 1 ? 'are' : 'is'} trending only on ${PLAT[p].label} without cross-platform validation. Monitor for broader breakout potential — these could be leading indicators of the next multi-platform wave.`);
-    }
-  });
-
-  // Declining / low-momentum
-  const declining = cross.filter(d => d.avgGrowth < -15).slice(0, 2);
-  if (declining.length) {
-    const names = declining.map(d => `<strong>${cap(d.keyword)}</strong>`).join(' and ');
-    bullets.push(`${names} ${declining.length > 1 ? 'are showing' : 'is showing'} negative growth signals. Consider reducing content investment in these areas or repositioning the narrative to maintain relevance.`);
-  }
-
-  el.innerHTML = insightHTML(bullets);
-}
-
-function generateTimeseriesInsights(platform, data, stats) {
-  const el = document.getElementById('platInsights');
-  if (!el || !stats) return;
-  const bullets   = [];
-  const keywords  = data.keywords.filter(k => stats[k]);
-  const byLatest  = [...keywords].sort((a, b) => (stats[b].latest  || 0) - (stats[a].latest  || 0));
-  const byGrowth  = [...keywords].sort((a, b) => (stats[b].growth  || 0) - (stats[a].growth  || 0));
-  const byMoment  = [...keywords].sort((a, b) => (stats[b].momentum|| 0) - (stats[a].momentum|| 0));
-  const label     = PLAT[platform].label;
-
-  // Top by current interest
-  const top = byLatest[0];
-  if (top) {
-    bullets.push(`<strong>${cap(top)}</strong> leads ${label} with a current interest score of <strong>${Math.round(stats[top].latest)}/100</strong>, ${stats[top].latest >= 70 ? 'indicating peak-level audience demand.' : stats[top].latest >= 40 ? 'reflecting steady mid-level demand.' : 'though interest remains moderate — consider whether search intent matches M&S content.'}`);
-  }
-
-  // Fastest growing
-  const growers = byGrowth.filter(k => (stats[k].growth || 0) > 10).slice(0, 2);
-  if (growers.length) {
-    const list = growers.map(k => `<strong>${cap(k)}</strong> (+${stats[k].growth.toFixed(0)}%)`).join(' and ');
-    bullets.push(`${list} ${growers.length > 1 ? 'are posting' : 'is posting'} strong growth over the tracked period. Rising search interest is an early cue to brief content and paid media teams before the trend reaches its ceiling.`);
-  }
-
-  // Accelerating momentum
-  const accel = byMoment.filter(k => (stats[k].momentum || 0) > 10).slice(0, 2);
-  if (accel.length) {
-    const list = accel.map(k => `<strong>${cap(k)}</strong>`).join(' and ');
-    bullets.push(`${list} ${accel.length > 1 ? 'are' : 'is'} accelerating in the most recent weeks. Accelerating trends are typically within 2–4 weeks of their peak — now is the optimal window for M&S to publish hero content.`);
-  }
-
-  // Decelerating
-  const decel = byMoment.filter(k => (stats[k].momentum || 0) < -10).slice(0, 2);
-  if (decel.length) {
-    const list = decel.map(k => `<strong>${cap(k)}</strong>`).join(' and ');
-    bullets.push(`${list} ${decel.length > 1 ? 'are decelerating' : 'is decelerating'} in recent weeks despite prior performance. Shift reactive content plans to higher-momentum keywords to maximise reach while interest is peaking.`);
-  }
-
-  // Evergreen (high, stable)
-  const evergreen = keywords.filter(k => stats[k].latest > 50 && Math.abs(stats[k].growth) < 10);
-  if (evergreen.length) {
-    const list = evergreen.slice(0, 2).map(k => `<strong>${cap(k)}</strong>`).join(' and ');
-    bullets.push(`${list} maintain consistently high interest with minimal fluctuation. These evergreen signals should anchor M&S's always-on SEO and content strategy, providing reliable baseline traffic.`);
-  }
-
-  // Declining
-  const declining = byGrowth.filter(k => (stats[k].growth || 0) < -15).slice(0, 2);
-  if (declining.length) {
-    const list = declining.map(k => `<strong>${cap(k)}</strong> (${stats[k].growth.toFixed(0)}%)`).join(' and ');
-    bullets.push(`${list} ${declining.length > 1 ? 'have declined' : 'has declined'} significantly over the period. Review associated content performance — if engagement is also falling, consider sunsetting these topics in favour of higher-momentum alternatives.`);
-  }
-
-  el.innerHTML = insightHTML(bullets);
-}
-
-function generateRankingInsights(platform, data) {
-  const el = document.getElementById('platInsights');
-  if (!el) return;
-  const bullets  = [];
-  const { topics } = data;
-  const byViews  = [...topics].filter(t => t.views  !== null).sort((a, b) => b.views  - a.views);
-  const byGrowth = [...topics].filter(t => t.growth !== null).sort((a, b) => b.growth - a.growth);
-  const avgGrowth = byGrowth.length ? byGrowth.reduce((s, t) => s + t.growth, 0) / byGrowth.length : null;
-  const label     = PLAT[platform].label;
-
-  // Volume leader
-  if (byViews[0]) {
-    bullets.push(`<strong>#${cap(byViews[0].name)}</strong> dominates by volume with <strong>${fmtCompact(byViews[0].views)}</strong> total views — the highest-reach trend in the dataset, indicating mass-market cultural penetration that M&S can credibly activate against.`);
-  }
-
-  // Growth leader
-  if (byGrowth[0] && byGrowth[0].growth > 0) {
-    const diff = byGrowth[0].name !== byViews[0]?.name;
-    bullets.push(`<strong>#${cap(byGrowth[0].name)}</strong> is the fastest-growing trend at <strong>+${byGrowth[0].growth.toFixed(0)}%</strong>.${diff ? ` The fact that this differs from the volume leader suggests it is a newer trend breaking into the space — an early-mover opportunity before competition intensifies.` : ` Its combination of high volume and strong growth makes it the standout priority.`}`);
-  }
-
-  // Average growth benchmark
-  if (avgGrowth !== null) {
-    const aboveAvg = byGrowth.filter(t => t.growth > avgGrowth);
-    bullets.push(`The average growth rate across tracked ${label} trends is <strong>+${avgGrowth.toFixed(0)}%</strong>. <strong>${aboveAvg.length}</strong> topic${aboveAvg.length !== 1 ? 's are' : ' is'} beating this benchmark: ${aboveAvg.slice(0, 3).map(t => `#${cap(t.name)}`).join(', ')}.`);
-  }
-
-  // Declining topics
-  const declining = byGrowth.filter(t => t.growth < 0).slice(0, 2);
-  if (declining.length) {
-    const list = declining.map(t => `<strong>#${cap(t.name)}</strong> (${t.growth.toFixed(0)}%)`).join(' and ');
-    bullets.push(`${list} ${declining.length > 1 ? 'are in decline' : 'is in decline'}. Despite any residual volume, declining hashtags carry diminishing organic reach — deprioritise these in content planning.`);
-  }
-
-  el.innerHTML = insightHTML(bullets);
-}
-
-// Wire insight generation into renders (called after DOM paint)
-const _origRenderCross      = renderCross;
-const _origRenderTimeseries = renderTimeseries;
-const _origRenderRanking    = renderRanking;
-
-// Patch renderCross to call insight generator post-paint
-window.renderCross = function(el) {
-  _origRenderCross(el);
-  setTimeout(() => generateCrossInsights(analyzeCross()), 60);
-};
-
-// Patch renderTimeseries
-window.renderTimeseries = function(el, platform, data) {
-  _origRenderTimeseries(el, platform, data);
-  setTimeout(() => generateTimeseriesInsights(platform, data, analyzeTimeSeries(data)), 60);
-};
-
-// Patch renderRanking
-window.renderRanking = function(el, platform, data) {
-  _origRenderRanking(el, platform, data);
-  setTimeout(() => generateRankingInsights(platform, data), 60);
-};
-
-// Re-wire dispatcher to use patched versions
-function renderDashboard() {
-  destroyCharts();
-  const el = document.getElementById('dashboardContent');
-  const v  = state.view;
-  if      (v === 'cross')     window.renderCross(el);
-  else if (v === 'google')    renderPlatform(el, 'google',    state.google);
-  else if (v === 'tiktok')    renderPlatform(el, 'tiktok',    state.tiktok);
-  else if (v === 'pinterest') renderPlatform(el, 'pinterest', state.pinterest);
-}
-
-function renderPlatform(el, platform, data) {
-  if (!data) {
-    el.innerHTML = `<div class="empty-state"><h3>No ${PLAT[platform].label} data loaded</h3><p>Upload a ${PLAT[platform].label} CSV file above to see platform insights.</p></div>`;
-    return;
-  }
-  if (data.type === 'timeseries') window.renderTimeseries(el, platform, data);
-  else                            window.renderRanking(el, platform, data);
+function growthBadge(g, isBreakout) {
+  if (isBreakout) return '<span class="badge-breakout">Breakout</span>';
+  if (g == null)  return '<span class="badge-flat">—</span>';
+  if (g > 0)  return `<span class="badge-up">+${Number.isInteger(g) ? g : g.toFixed(1)}%</span>`;
+  if (g < 0)  return `<span class="badge-down">${Number.isInteger(g) ? g : g.toFixed(1)}%</span>`;
+  return '<span class="badge-flat">Flat</span>';
 }
 </script>
 </body>
