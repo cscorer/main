@@ -10,19 +10,19 @@
     /* ── Tokens ── */
     :root {
       --green:      #007A33;
-      --green-mid:  #4ade80;
-      --green-light:#e8f5ee;
+      --green-light:#e6f2ec;
       --dark:       #0a0a0a;
-      --mid:        #555;
-      --border:     #e2e2e2;
-      --bg:         #f5f5f3;
+      --mid:        #777;
+      --muted:      #aaa;
+      --border:     #dbd7d0;
+      --bg:         #EAE6DE;
       --white:      #ffffff;
-      --radius:     12px;
+      --radius:     4px;
       --font:       'Inter', 'Helvetica Neue', Arial, sans-serif;
       --google:     #4285F4;
       --google-bg:  #e8f0fe;
       --tiktok:     #111111;
-      --tiktok-bg:  #f0f0f0;
+      --tiktok-bg:  #eeeeee;
       --pinterest:  #E60023;
       --pinterest-bg:#fde8ea;
     }
@@ -34,8 +34,9 @@
 
     /* ── Header ── */
     #site-header {
-      background: var(--dark);
-      padding: 18px 40px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -43,69 +44,69 @@
       top: 0;
       z-index: 200;
     }
-    .logo { display: flex; align-items: center; gap: 14px; }
-    .logo-dept {
-      font-size: 20px; font-weight: 900; color: #fff;
-      text-transform: uppercase; letter-spacing: -0.5px;
-    }
-    .logo-dept span { color: var(--green); }
-    .header-divider { width: 1px; height: 22px; background: #333; }
-    .logo-ms { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
-    .logo-ms .amp { color: var(--green); }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-dept { font-size: 17px; font-weight: 900; color: var(--dark); text-transform: uppercase; letter-spacing: 1px; }
+    .logo-dept span { color: var(--dark); }
+    .header-divider { width: 1px; height: 18px; background: var(--border); }
+    .logo-ms { font-size: 15px; font-weight: 700; color: var(--dark); letter-spacing: 0.3px; }
+    .logo-ms .amp { color: var(--dark); }
     .header-badge {
-      background: var(--green); color: #fff;
-      font-size: 11px; font-weight: 700;
-      padding: 4px 14px; border-radius: 100px;
-      text-transform: uppercase; letter-spacing: 0.5px;
+      background: var(--dark); color: #fff;
+      font-size: 10px; font-weight: 700;
+      padding: 4px 12px; border-radius: 2px;
+      text-transform: uppercase; letter-spacing: 1px;
     }
 
     /* ── Hero ── */
     .hero {
-      background: var(--dark);
-      padding: 52px 40px 60px;
-      border-bottom: 3px solid var(--green);
+      background: var(--bg);
+      padding: 72px 40px 80px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-eyebrow {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 2px; color: var(--mid); margin-bottom: 20px;
     }
     .hero h1 {
-      font-size: clamp(28px, 5vw, 52px);
-      font-weight: 900; color: #fff;
+      font-size: clamp(40px, 7vw, 88px);
+      font-weight: 900; color: var(--dark);
       text-transform: uppercase;
-      letter-spacing: -1.5px; line-height: 1.0;
-      max-width: 800px; margin-bottom: 14px;
+      letter-spacing: -3px; line-height: 0.92;
+      max-width: 900px; margin-bottom: 24px;
     }
     .hero h1 em { color: var(--green); font-style: normal; }
-    .hero p { color: #999; font-size: 15px; max-width: 560px; line-height: 1.65; }
+    .hero h1 .light { color: var(--muted); font-weight: 300; }
+    .hero p { color: var(--mid); font-size: 14px; max-width: 480px; line-height: 1.75; }
 
     /* ── Main ── */
-    main { max-width: 1280px; margin: 0 auto; padding: 40px 24px 80px; }
+    main { max-width: 1280px; margin: 0 auto; padding: 48px 24px 80px; }
 
     /* ── Upload section ── */
-    .upload-section { margin-bottom: 40px; }
+    .upload-section { margin-bottom: 48px; }
     .upload-section-label {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1px;
-      color: var(--mid); margin-bottom: 14px;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: var(--muted); margin-bottom: 16px;
     }
 
     /* Upload grid */
-    .upload-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 12px; }
+    .upload-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; }
 
     .upload-card {
       background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
       padding: 20px;
       cursor: default;
       user-select: none;
     }
 
     /* Card header row */
-    .card-platform-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-    .card-platform-hd h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; }
-    .card-platform-hd p  { font-size: 11px; color: var(--mid); }
+    .card-platform-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .card-platform-hd h3 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+    .card-platform-hd p  { font-size: 11px; color: var(--muted); }
 
     /* Platform icons */
     .platform-icon {
-      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 6px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
     }
     .google-icon    { background: var(--google-bg); }
@@ -113,21 +114,20 @@
     .pinterest-icon { background: var(--pinterest-bg); }
 
     /* Two upload slots inside each card */
-    .upload-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .upload-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
     .upload-slot {
-      border: 1.5px dashed #ddd;
-      border-radius: 8px;
-      padding: 14px 10px;
+      border: 1.5px dashed #ccc;
+      border-radius: var(--radius);
+      padding: 12px 8px;
       text-align: center;
       cursor: pointer;
       transition: all .15s;
       position: relative;
-      background: #fafafa;
+      background: #faf9f7;
     }
     .upload-slot input[type=file] { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
 
-    /* Platform-coloured hover / loaded states on slots */
     [data-platform="google"]    .upload-slot:hover,
     [data-platform="google"]    .upload-slot.drag-over,
     [data-platform="google"]    .upload-slot.loaded { border-color: var(--google);    background: var(--google-bg); }
@@ -139,96 +139,62 @@
     [data-platform="pinterest"] .upload-slot.loaded { border-color: var(--pinterest); background: var(--pinterest-bg); }
     .upload-slot.loaded { border-style: solid; }
 
-    /* Per-slot loaded check */
     .slot-check {
       display: none;
-      position: absolute; top: 6px; right: 6px;
-      width: 18px; height: 18px; border-radius: 50%;
+      position: absolute; top: 5px; right: 5px;
+      width: 16px; height: 16px; border-radius: 50%;
       background: var(--green); color: #fff;
-      font-size: 10px; font-weight: 700;
+      font-size: 9px; font-weight: 700;
       align-items: center; justify-content: center;
     }
     .upload-slot.loaded .slot-check { display: flex; }
 
-    .slot-kind-icon { font-size: 18px; margin-bottom: 4px; }
-    .slot-kind {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.5px;
-      color: var(--dark); margin-bottom: 3px;
-    }
-    .slot-fname {
-      font-size: 10px; color: #aaa;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
+    .slot-kind-icon { font-size: 14px; margin-bottom: 4px; }
+    .slot-kind { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--dark); margin-bottom: 3px; }
+    .slot-fname { font-size: 9px; color: #bbb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .upload-slot.loaded .slot-fname { color: var(--green); font-weight: 600; }
 
     /* ── Format guide ── */
-    .format-guide {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .format-guide-toggle {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 13px 20px; cursor: pointer;
-      font-size: 12px; font-weight: 600; color: var(--mid);
-    }
-    .format-guide-toggle:hover { background: #fafafa; }
+    .format-guide { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .format-guide-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; cursor: pointer; font-size: 11px; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: 0.5px; }
+    .format-guide-toggle:hover { background: #f5f3ef; }
     .fmt-arrow { font-size: 10px; }
-    .format-guide-body {
-      display: none;
-      grid-template-columns: repeat(3,1fr);
-      gap: 16px; padding: 0 20px 20px;
-    }
+    .format-guide-body { display: none; grid-template-columns: repeat(3,1fr); gap: 16px; padding: 0 20px 20px; }
     .format-guide-body.open { display: grid; }
-    .fmt-col h4 {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--mid); margin-bottom: 8px;
-    }
-    .fmt-col pre {
-      background: #f5f5f5; border-radius: 6px;
-      padding: 12px; font-size: 11px; line-height: 1.5;
-      font-family: monospace; overflow-x: auto; color: #333;
-    }
+    .fmt-col h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--mid); margin-bottom: 8px; }
+    .fmt-col pre { background: #f5f3ef; border-radius: 3px; padding: 12px; font-size: 11px; line-height: 1.5; font-family: monospace; overflow-x: auto; color: #555; }
 
     /* ── Controls bar ── */
     .controls-bar {
       display: none;
       align-items: center; justify-content: space-between;
       flex-wrap: wrap; gap: 12px;
-      margin-bottom: 28px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
     }
     .controls-bar.visible { display: flex; }
 
     .view-selector { display: flex; align-items: center; gap: 10px; }
-    .view-selector label {
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px; color: var(--mid);
-    }
+    .view-selector label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
     #platformSelect {
       appearance: none;
       background: var(--white)
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23555'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23777'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")
         no-repeat right 12px center;
-      border: 1.5px solid var(--border); border-radius: 8px;
+      border: 1px solid var(--border); border-radius: var(--radius);
       padding: 9px 36px 9px 14px;
       font-size: 14px; font-weight: 600; color: var(--dark);
       font-family: var(--font); cursor: pointer;
     }
     #platformSelect:focus { outline: none; border-color: var(--green); }
 
-    .status-pills { display: flex; gap: 8px; }
-    .status-pill {
-      display: flex; align-items: center; gap: 5px;
-      padding: 4px 11px; border-radius: 100px;
-      font-size: 11px; font-weight: 600;
-    }
-    .status-pill.on  { background: var(--green-light); color: var(--green); }
-    .status-pill.off { background: #f0f0f0; color: #aaa; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; }
-    .status-pill.on  .status-dot { background: var(--green); }
+    .status-pills { display: flex; gap: 6px; }
+    .status-pill { display: flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-pill.on  { background: var(--green); color: #fff; }
+    .status-pill.off { background: #e8e4dc; color: var(--muted); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .status-pill.on  .status-dot { background: rgba(255,255,255,.7); }
     .status-pill.off .status-dot { background: #ccc; }
 
     /* ── Dashboard ── */
@@ -236,107 +202,101 @@
     .dashboard.visible { display: block; }
 
     /* Section headers */
-    .section-hd { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
-    .section-title { font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.3px; }
+    .section-hd { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .section-title { font-size: clamp(28px, 4vw, 48px); font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.95; }
     .section-title em { color: var(--green); font-style: normal; }
-    .section-sub { font-size: 12px; color: var(--mid); margin-top: 3px; }
+    .section-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; padding-bottom: 4px; }
 
     /* Stat cards */
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-    .stat-card.dark   { background: var(--dark); border-color: var(--dark); }
-    .stat-card.accent { background: var(--green); border-color: var(--green); }
-    .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--mid); margin-bottom: 8px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+    .stat-card { background: var(--white); padding: 24px 20px; }
+    .stat-card.dark   { background: var(--dark); }
+    .stat-card.accent { background: var(--green); }
+    .stat-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 12px; }
     .stat-card.dark  .stat-label,
-    .stat-card.accent .stat-label { color: rgba(255,255,255,.55); }
-    .stat-value { font-size: 26px; font-weight: 900; color: var(--green); line-height: 1; margin-bottom: 4px; }
+    .stat-card.accent .stat-label { color: rgba(255,255,255,.5); }
+    .stat-value { font-size: 36px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 6px; letter-spacing: -1.5px; }
     .stat-card.dark  .stat-value  { color: #fff; }
     .stat-card.accent .stat-value { color: #fff; }
-    .stat-sub { font-size: 12px; color: var(--mid); }
+    .stat-sub { font-size: 11px; color: var(--muted); }
     .stat-card.dark  .stat-sub,
-    .stat-card.accent .stat-sub   { color: rgba(255,255,255,.45); }
+    .stat-card.accent .stat-sub   { color: rgba(255,255,255,.4); }
 
     /* Badges */
-    .badge-breakout { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #007A3322; color: var(--green); }
-    .badge-up   { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: var(--green-light); color: var(--green); }
-    .badge-down { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #fde8ea; color: var(--pinterest); }
-    .badge-flat { font-size: 11px; font-weight: 600; color: #aaa; }
-    .badge-accel{ display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: var(--green-light); color: var(--green); }
-    .badge-decel{ display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #fde8ea; color: var(--pinterest); }
+    .badge-breakout { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; background: var(--green-light); color: var(--green); text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-up   { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 2px; font-size: 11px; font-weight: 700; background: var(--green-light); color: var(--green); }
+    .badge-down { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 2px; font-size: 11px; font-weight: 700; background: #fde8ea; color: var(--pinterest); }
+    .badge-flat { font-size: 11px; font-weight: 600; color: #ccc; }
 
     /* Platform tags */
-    .ptag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; margin-right: 3px; }
+    .ptag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 2px; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-right: 3px; }
     .ptag.google    { background: var(--google-bg);    color: var(--google); }
     .ptag.tiktok    { background: var(--tiktok-bg);    color: var(--tiktok); }
     .ptag.pinterest { background: var(--pinterest-bg); color: var(--pinterest); }
 
     /* Chart cards */
-    .chart-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
     .chart-row.single { grid-template-columns: 1fr; }
-    .chart-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px; }
-    .chart-card h3 { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.2px; margin-bottom: 4px; }
-    .chart-card .chart-desc { font-size: 12px; color: var(--mid); margin-bottom: 18px; }
+    .chart-card { background: var(--white); padding: 28px; }
+    .chart-card h3 { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; color: var(--dark); }
+    .chart-card .chart-desc { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
     .chart-wrap { position: relative; }
 
     /* Tables */
-    .table-section { margin-bottom: 20px; }
+    .table-section { margin-bottom: 16px; }
     .table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead tr { background: var(--dark); }
+    thead tr { background: #f5f3ef; }
     thead th {
-      color: #fff; font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      padding: 13px 16px; text-align: left; white-space: nowrap; cursor: pointer;
+      color: var(--dark); font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 12px 16px; text-align: left; white-space: nowrap; cursor: pointer;
+      border-bottom: 1px solid var(--border);
     }
-    thead th:hover { background: #1a1a1a; }
-    thead th.sort-asc::after  { content: ' ↑'; color: var(--green-mid); }
-    thead th.sort-desc::after { content: ' ↓'; color: var(--green-mid); }
-    tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+    thead th:hover { background: #ede9e3; }
+    thead th.sort-asc::after  { content: ' ↑'; color: var(--green); }
+    thead th.sort-desc::after { content: ' ↓'; color: var(--green); }
+    tbody tr { border-bottom: 1px solid #edeae4; transition: background .1s; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--green-light); }
-    tbody td { padding: 11px 16px; }
+    tbody tr:hover { background: #f8f6f2; }
+    tbody td { padding: 12px 16px; }
     .td-bold { font-weight: 700; }
     .td-green { font-weight: 800; color: var(--green); }
-    .rank-num { font-weight: 800; }
+    .rank-num { font-weight: 900; font-size: 14px; }
     .rank-top { color: var(--green); }
-    .rank-rest { color: #bbb; }
+    .rank-rest { color: #ddd; }
 
     /* Momentum bar */
     .momentum-bar { display: flex; align-items: center; gap: 8px; }
-    .momentum-fill { height: 6px; background: var(--green); border-radius: 3px; min-width: 2px; }
+    .momentum-fill { height: 4px; background: var(--dark); border-radius: 2px; min-width: 2px; }
     .momentum-num { font-size: 12px; font-weight: 700; }
 
     /* Relevance bar */
     .relevance-bar { display: flex; align-items: center; gap: 8px; }
-    .relevance-fill { height: 6px; background: linear-gradient(90deg, #4ade80, #007A33); border-radius: 3px; min-width: 2px; }
-    .relevance-num { font-size: 12px; font-weight: 700; color: var(--green); }
-
-    /* Predicted trend card */
-    .stat-card.predict { background: #0f1a12; border-color: var(--green); position: relative; overflow: hidden; }
-    .stat-card.predict::before { content: ''; position: absolute; top: -24px; right: -24px; width: 90px; height: 90px; background: var(--green); border-radius: 50%; opacity: .15; }
-    .stat-card.predict .stat-label { color: var(--green); }
-    .stat-card.predict .stat-value { color: #fff; font-size: 17px !important; }
-    .stat-card.predict .stat-sub { color: rgba(255,255,255,.5); }
+    .relevance-fill { height: 4px; background: var(--green); border-radius: 2px; min-width: 2px; }
+    .relevance-num { font-size: 12px; font-weight: 700; color: var(--dark); }
 
     /* Insights card */
-    .insights-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
-    .insights-hd { background: var(--dark); padding: 15px 22px; display: flex; align-items: center; gap: 10px; }
-    .insights-icon { width: 28px; height: 28px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .insights-hd h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; color: #fff; }
-    .insights-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
-    .insight-row { display: flex; gap: 12px; }
-    .insight-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-top: 7px; flex-shrink: 0; }
-    .insight-text { font-size: 14px; line-height: 1.65; color: #333; }
+    .insights-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+    .insights-hd { background: #f5f3ef; padding: 14px 22px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+    .insights-icon { width: 22px; height: 22px; background: var(--dark); border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+    .insights-hd h3 { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dark); }
+    .insights-body { padding: 24px; display: flex; flex-direction: column; gap: 0; }
+    .insight-row { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #edeae4; }
+    .insight-row:first-child { padding-top: 0; }
+    .insight-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .insight-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); margin-top: 10px; flex-shrink: 0; }
+    .insight-text { font-size: 14px; line-height: 1.75; color: #444; }
     .insight-text strong { color: var(--dark); }
 
     /* Empty state */
-    .empty-state { text-align: center; padding: 64px 20px; color: var(--mid); }
-    .empty-state h3 { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty-state h3 { font-size: 18px; font-weight: 900; color: var(--dark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: -0.5px; }
     .empty-state p  { font-size: 14px; }
 
     /* ── Footer ── */
-    footer { background: var(--dark); padding: 22px 40px; text-align: center; font-size: 12px; color: #555; }
-    footer strong { color: #aaa; }
+    footer { background: var(--dark); padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #555; }
+    footer strong { color: #888; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -345,8 +305,12 @@
       .format-guide-body{ grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
-      #site-header { padding: 14px 20px; }
-      .hero        { padding: 36px 20px 44px; }
+      #site-header { padding: 12px 20px; }
+      .hero        { padding: 48px 20px 56px; }
+      main         { padding: 28px 16px 60px; }
+      .stat-grid   { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
       main         { padding: 24px 16px 60px; }
       .stat-grid   { grid-template-columns: 1fr 1fr; }
     }
@@ -366,8 +330,9 @@
 
 <!-- ── Hero ── -->
 <div class="hero">
-  <h1>Trend <em>Intelligence</em><br>Dashboard</h1>
-  <p>Upload raw exports from Google Trends, TikTok and Pinterest to surface key trends, growth signals and cross-platform insights for M&amp;S.</p>
+  <div class="hero-eyebrow">DEPT® × M&amp;S &nbsp;·&nbsp; Trend Intelligence</div>
+  <h1>Trend<br><em>Intelligence</em><br><span class="light">Dashboard</span></h1>
+  <p>Upload raw exports from Google Trends, TikTok and Pinterest to surface key trends, growth signals and cross-platform insights.</p>
 </div>
 
 <!-- ── Main ── -->
@@ -533,7 +498,8 @@ dresses,4543,19368357,13,12</pre>
 
 <!-- ── Footer ── -->
 <footer>
-  <strong>DEPT® &times; M&amp;S</strong> &mdash; Trend Intelligence Dashboard &nbsp;&middot;&nbsp; Confidential
+  <strong>DEPT® &times; M&amp;S</strong>
+  <span>Trend Intelligence Dashboard &nbsp;&middot;&nbsp; Confidential</span>
 </footer>
 
 
@@ -704,14 +670,19 @@ function parsePinterest(rows) {
 
   const rankCol  = h.findIndex(c => c === 'rank' || c.replace(/^﻿/, '') === 'rank');
   const trendCol = h.findIndex(c => c === 'trend');
-  // Volume: try many name patterns, then fall back to position trendCol+1
-  let volCol = h.findIndex(c =>
-    c.includes('normalised') || c.includes('normalized') ||
-    c === 'volume' || c === 'vol' ||
-    (c.includes('volume') && !c.includes('change')) ||
-    c.includes('search vol') || c.includes('index') || c.includes('score')
-  );
-  if (volCol < 0 && trendCol >= 0 && h.length > trendCol + 1) volCol = trendCol + 1;
+  // Column BF (index 57) = most recent week's normalised volume in the full Pinterest export.
+  // Fall back to named/positional detection only for narrow test files.
+  let volCol;
+  if (rows[hi].length > 20) {
+    volCol = 57;
+  } else {
+    volCol = h.findIndex(c =>
+      c.includes('normalised') || c.includes('normalized') ||
+      c === 'volume' || c === 'vol' ||
+      (c.includes('volume') && !c.includes('change'))
+    );
+    if (volCol < 0 && trendCol >= 0 && h.length > trendCol + 1) volCol = trendCol + 1;
+  }
 
   const wkCol = h.findIndex(c => c.includes('weekly') || c.includes('week'));
   const moCol = h.findIndex(c => c.includes('monthly') || c.includes('month'));
@@ -852,7 +823,6 @@ function renderCross(el) {
   const multi     = cross.filter(d => d.platforms.length > 1);
   const breakouts = cross.filter(d => d.hasBreakout);
   const top       = cross[0];
-  const predicted = predictTrend(cross);
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -862,9 +832,8 @@ function renderCross(el) {
     <div class="stat-grid">
       <div class="stat-card"><div class="stat-label">Unique Trends</div><div class="stat-value">${cross.length}</div><div class="stat-sub">across ${loaded.length} platform${loaded.length !== 1 ? 's' : ''}</div></div>
       <div class="stat-card"><div class="stat-label">Cross-Platform</div><div class="stat-value">${multi.length}</div><div class="stat-sub">appearing on 2+ platforms</div></div>
-      <div class="stat-card accent"><div class="stat-label">Top Momentum Trend</div><div class="stat-value" style="font-size:18px">${top ? cap(top.keyword) : '—'}</div><div class="stat-sub">${top ? top.platforms.map(p => PLAT[p].label).join(' · ') : ''}</div></div>
+      <div class="stat-card accent"><div class="stat-label">Top Momentum Trend</div><div class="stat-value" style="font-size:18px;letter-spacing:-0.5px">${top ? cap(top.keyword) : '—'}</div><div class="stat-sub">${top ? top.platforms.map(p => PLAT[p].label).join(' · ') : ''}</div></div>
       <div class="stat-card"><div class="stat-label">Breakout Terms</div><div class="stat-value">${breakouts.length}</div><div class="stat-sub">Google breakout signals</div></div>
-      <div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">${predicted ? cap(predicted.keyword) : '—'}</div><div class="stat-sub">${predicted ? predicted.signal : 'Load more data for predictions'}</div></div>
     </div>
     <div class="chart-row">
       <div class="chart-card"><h3>Momentum Score — Top 12</h3><p class="chart-desc">Platform presence + growth rate + breakout signal</p><div class="chart-wrap" style="height:320px"><canvas id="cMomentumChart"></canvas></div></div>
@@ -928,7 +897,6 @@ function renderGoogle(el) {
     return (b.change || 0) - (a.change || 0);
   });
   const breakoutCount = rising.filter(t => t.isBreakout).length;
-  const predicted = predictPlatformTrend('google');
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -940,7 +908,6 @@ function renderGoogle(el) {
       ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 Top Query</div><div class="stat-value" style="font-size:18px">${cap(topS[0].query)}</div><div class="stat-sub">Interest: ${topS[0].searchInterest}</div></div>` : ''}
       ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">#1 Rising Query</div><div class="stat-value" style="font-size:18px">${cap(riseS[0].query)}</div><div class="stat-sub">${riseS[0].isBreakout ? 'Breakout' : '+' + (riseS[0].change || 0).toFixed(0) + '%'}</div></div>` : ''}
       <div class="stat-card"><div class="stat-label">Breakout Terms</div><div class="stat-value">${breakoutCount}</div><div class="stat-sub">brand-new search queries</div></div>
-      ${predicted ? `<div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">${cap(predicted.keyword)}</div><div class="stat-sub">${predicted.signal}</div></div>` : ''}
     </div>
     <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
       ${top.length ? `<div class="chart-card"><h3>Top Queries — Search Interest</h3><p class="chart-desc">Relative search volume (0–100 normalised)</p><div class="chart-wrap" style="height:280px"><canvas id="gTopChart"></canvas></div></div>` : ''}
@@ -993,7 +960,6 @@ function renderTikTok(el) {
   const avgRC  = riseS.filter(t => t.rankChange != null).length
     ? (riseS.filter(t => t.rankChange != null).reduce((s, t) => s + t.rankChange, 0) / riseS.filter(t => t.rankChange != null).length).toFixed(1)
     : null;
-  const predicted = predictPlatformTrend('tiktok');
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -1005,7 +971,6 @@ function renderTikTok(el) {
       ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Views</div><div class="stat-value" style="font-size:18px">#${cap(topS[0].name)}</div><div class="stat-sub">${topS[0].views != null ? fmtCompact(topS[0].views) + ' views' : 'Rank ' + topS[0].rankPosition}</div></div>` : ''}
       ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">Biggest Rank Climber</div><div class="stat-value" style="font-size:18px">#${cap(riseS[0].name)}</div><div class="stat-sub">${riseS[0].rankChange != null ? '+' + riseS[0].rankChange + ' positions' : ''}</div></div>` : ''}
       <div class="stat-card"><div class="stat-label">Avg Rank Change</div><div class="stat-value">${avgRC != null ? '+' + avgRC : '—'}</div><div class="stat-sub">across rising hashtags</div></div>
-      ${predicted ? `<div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">#${cap(predicted.keyword)}</div><div class="stat-sub">${predicted.signal}</div></div>` : ''}
     </div>
     <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
       ${top.length ? `<div class="chart-card"><h3>Top Hashtags — Views</h3><p class="chart-desc">Total views per hashtag</p><div class="chart-wrap" style="height:300px"><canvas id="ttTopChart"></canvas></div></div>` : ''}
@@ -1063,7 +1028,6 @@ function renderPinterest(el) {
   // Fastest growing: all terms sorted by weeklyChange desc
   const fastGrow = [...all].filter(t => t.weeklyChange != null).sort((a, b) => b.weeklyChange - a.weeklyChange).slice(0, 10);
   const strongYoY = all.filter(t => (t.yearlyChange || 0) > 50).length;
-  const predicted  = predictPlatformTrend('pinterest');
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -1075,7 +1039,6 @@ function renderPinterest(el) {
       ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Search Volume</div><div class="stat-value" style="font-size:18px">${cap(topS[0].term)}</div><div class="stat-sub">Volume: ${topS[0].normVolume != null ? topS[0].normVolume : '—'}/100</div></div>` : ''}
       ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">#1 Rising Trend</div><div class="stat-value" style="font-size:18px">${cap(riseS[0].term)}</div><div class="stat-sub">${riseS[0].weeklyChange != null ? (riseS[0].weeklyChange > 0 ? '+' : '') + riseS[0].weeklyChange + '% weekly' : ''}</div></div>` : ''}
       <div class="stat-card"><div class="stat-label">Strong YoY Growth</div><div class="stat-value">${strongYoY}</div><div class="stat-sub">trends up &gt;50% year-on-year</div></div>
-      ${predicted ? `<div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">${cap(predicted.keyword)}</div><div class="stat-sub">${predicted.signal}</div></div>` : ''}
     </div>
     ${fastGrow.length ? `<div class="chart-row single">
       <div class="chart-card"><h3>Fastest Growing Trends — Weekly</h3><p class="chart-desc">Week-on-week growth % across all Pinterest trends (top &amp; rising combined)</p><div class="chart-wrap" style="height:280px"><canvas id="piFastChart"></canvas></div></div>
@@ -1289,64 +1252,6 @@ function generatePinterestInsights(p) {
 }
 
 // ── Predict next trend ─────────────────────────────────────────────────────
-function predictTrend(cross) {
-  if (!cross.length) return null;
-  // Priority 1: Breakout term that isn't already the #1 momentum leader
-  const breakouts = cross.filter(d => d.hasBreakout && d !== cross[0]);
-  if (breakouts.length) return { keyword: breakouts[0].keyword, signal: 'Google Breakout signal' };
-  // Priority 2: Single-platform rising term with >80% avg growth (early-stage)
-  const early = cross.filter(d => d.platforms.length === 1 && d.avgGrowth > 80 && d !== cross[0])
-    .sort((a, b) => b.avgGrowth - a.avgGrowth);
-  if (early.length) return { keyword: early[0].keyword, signal: `+${Math.round(early[0].avgGrowth)}% — early-stage signal` };
-  // Priority 3: Highest growth term overall (excluding current leader)
-  const growing = [...cross].filter(d => d !== cross[0] && d.avgGrowth > 10)
-    .sort((a, b) => b.avgGrowth - a.avgGrowth);
-  if (growing.length) return { keyword: growing[0].keyword, signal: `+${Math.round(growing[0].avgGrowth)}% growth velocity` };
-  // Fallback: second momentum term
-  return cross[1] ? { keyword: cross[1].keyword, signal: 'Rising momentum' } : null;
-}
-
-function predictPlatformTrend(platform) {
-  // Predict from per-platform data: highest-growth rising term that isn't already #1 by volume
-  const p = state[platform];
-  if (!p) return null;
-  const top    = p.top?.terms    || [];
-  const rising = p.rising?.terms || [];
-  if (!top.length && !rising.length) return null;
-
-  if (platform === 'google') {
-    const topSorted = [...top].sort((a, b) => b.searchInterest - a.searchInterest);
-    const leader = topSorted[0]?.query;
-    // Prefer breakout rising terms
-    const bk = rising.filter(t => t.isBreakout && t.query !== leader);
-    if (bk.length) return { keyword: bk[0].query, signal: 'Breakout signal' };
-    // Else highest-growth rising not already #1
-    const r = [...rising].filter(t => t.query !== leader).sort((a, b) => (b.change || 0) - (a.change || 0));
-    if (r[0]) return { keyword: r[0].query, signal: r[0].isBreakout ? 'Breakout' : `+${Math.round(r[0].change || 0)}% rising` };
-    return topSorted[1] ? { keyword: topSorted[1].query, signal: 'High search interest' } : null;
-  }
-
-  if (platform === 'tiktok') {
-    const topSorted = [...top].sort((a, b) => (b.views || 0) - (a.views || 0));
-    const leader = topSorted[0]?.name;
-    const r = [...rising].filter(t => t.name !== leader).sort((a, b) => (b.rankChange || 0) - (a.rankChange || 0));
-    if (r[0]) return { keyword: r[0].name, signal: `+${r[0].rankChange || 0} rank positions` };
-    return topSorted[1] ? { keyword: topSorted[1].name, signal: 'High view volume' } : null;
-  }
-
-  if (platform === 'pinterest') {
-    const all = [...top, ...rising];
-    const leader = [...all].sort((a, b) => (b.normVolume || 0) - (a.normVolume || 0))[0]?.term;
-    // Prefer high weekly growth with lower current volume (room to grow)
-    const r = [...rising].filter(t => t.term !== leader).sort((a, b) => (b.weeklyChange || b.monthlyChange || 0) - (a.weeklyChange || a.monthlyChange || 0));
-    if (r[0]) return { keyword: r[0].term, signal: `+${r[0].weeklyChange != null ? r[0].weeklyChange : (r[0].monthlyChange || 0)}% weekly` };
-    const t2 = [...top].filter(t => t.term !== leader).sort((a, b) => (b.weeklyChange || 0) - (a.weeklyChange || 0));
-    if (t2[0]) return { keyword: t2[0].term, signal: `+${t2[0].weeklyChange || 0}% weekly` };
-    return null;
-  }
-  return null;
-}
-
 // ── Relevance score (0–100) ────────────────────────────────────────────────
 function relevanceScore(platform, t, allTerms) {
   if (platform === 'google') {
