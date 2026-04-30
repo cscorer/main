@@ -686,6 +686,125 @@ function parseGrowth(s) {
 function stripHash(s) {
   return s.replace(/^#+/, '').replace(/"/g, '').trim();
 }
+
+// ── Analysis ───────────────────────────────────────────────────────────────
+
+// Returns per-keyword stats for a timeseries dataset
+function analyzeTimeSeries(data) {
+  if (!data || data.type !== 'timeseries') return null;
+  const { keywords, series } = data;
+  if (!series.length) return null;
+
+  const out = {};
+  keywords.forEach(kw => {
+    const vals = series.map(s => s.values[kw]).filter(v => v !== null && v !== undefined);
+    if (!vals.length) return;
+
+    const avg      = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const peak     = Math.max(...vals);
+    const latest   = vals[vals.length - 1];
+    const earliest = vals[0];
+    const growth   = earliest > 0 ? ((latest - earliest) / earliest) * 100 : 0;
+
+    // Recent momentum: last 4 points vs prior 4
+    const recent     = vals.slice(-4);
+    const prior      = vals.slice(-8, -4);
+    const recentAvg  = recent.reduce((a, b) => a + b, 0) / recent.length;
+    const priorAvg   = prior.length ? prior.reduce((a, b) => a + b, 0) / prior.length : recentAvg;
+    const momentum   = priorAvg > 0 ? ((recentAvg - priorAvg) / priorAvg) * 100 : 0;
+
+    out[kw] = { avg, peak, latest, earliest, growth, momentum, vals };
+  });
+  return out;
+}
+
+// Cross-platform: merge all keywords, score by presence + growth
+function analyzeCross() {
+  const gStats  = analyzeTimeSeries(state.google);
+  const ttStats = state.tiktok?.type === 'timeseries' ? analyzeTimeSeries(state.tiktok) : null;
+  const piStats = analyzeTimeSeries(state.pinterest);
+
+  // Build a map: normalisedKeyword -> { platforms, scores, growths }
+  const map = {};
+
+  function upsert(normKw, platform, score, growth) {
+    if (!map[normKw]) map[normKw] = { keyword: normKw, platforms: [], scores: {}, growths: {} };
+    if (!map[normKw].platforms.includes(platform)) map[normKw].platforms.push(platform);
+    map[normKw].scores[platform]  = score;
+    map[normKw].growths[platform] = growth;
+  }
+
+  if (gStats) {
+    Object.entries(gStats).forEach(([kw, s]) => upsert(norm(kw), 'google', s.latest, s.growth));
+  }
+  if (ttStats) {
+    Object.entries(ttStats).forEach(([kw, s]) => upsert(norm(kw), 'tiktok', s.latest, s.growth));
+  }
+  if (state.tiktok?.type === 'ranking') {
+    state.tiktok.topics.forEach(t => {
+      const nk = norm(t.name);
+      // Try to match against existing keys first
+      const existing = Object.keys(map).find(k => fuzzyMatch(k, nk));
+      const key = existing || nk;
+      upsert(key, 'tiktok', t.views, t.growth);
+    });
+  }
+  if (piStats) {
+    Object.entries(piStats).forEach(([kw, s]) => {
+      const existing = Object.keys(map).find(k => fuzzyMatch(k, norm(kw)));
+      const key = existing || norm(kw);
+      upsert(key, 'pinterest', s.latest, s.growth);
+    });
+  }
+
+  // Score each keyword
+  const results = Object.values(map).map(entry => {
+    const growths    = Object.values(entry.growths).filter(g => g !== null);
+    const avgGrowth  = growths.length ? growths.reduce((a, b) => a + b, 0) / growths.length : 0;
+    // Momentum score: platform count (up to 3) weighted at 30 pts each + capped growth signal
+    const momentum   = (entry.platforms.length * 30) + Math.min(Math.max(avgGrowth, 0), 40);
+    return { ...entry, avgGrowth, momentum };
+  });
+
+  return results.sort((a, b) => b.momentum - a.momentum);
+}
+
+// ── Normalisation helpers ──────────────────────────────────────────────────
+
+function norm(s) {
+  return s.toLowerCase()
+    .replace(/^#+/, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function fuzzyMatch(a, b) {
+  if (a === b) return true;
+  if (a.includes(b) || b.includes(a)) return true;
+  return false;
+}
+
+// ── UI update after data load ──────────────────────────────────────────────
+
+function onDataChange() {
+  document.getElementById('controlsBar').classList.add('visible');
+  document.getElementById('dashboard').classList.add('visible');
+  updateStatusPills();
+  renderDashboard();
+}
+
+function updateStatusPills() {
+  const labels = { google: 'Google', tiktok: 'TikTok', pinterest: 'Pinterest' };
+  document.getElementById('statusPills').innerHTML =
+    Object.keys(labels).map(p => `
+      <div class="status-pill ${state[p] ? 'on' : 'off'}">
+        <div class="status-dot"></div>${labels[p]}
+      </div>`).join('');
+}
+
+// Stub — rendering added in next step
+function renderDashboard() {}
 </script>
 </body>
 </html>
