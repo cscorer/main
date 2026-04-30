@@ -311,10 +311,6 @@
       .stat-grid   { grid-template-columns: 1fr 1fr; }
     }
   </style>
-      main         { padding: 24px 16px 60px; }
-      .stat-grid   { grid-template-columns: 1fr 1fr; }
-    }
-  </style>
 </head>
 <body>
 
@@ -465,10 +461,10 @@ dresses,4543,19368357,13,12</pre>
         </div>
         <div class="fmt-col">
           <h4>Pinterest — Top &amp; Rising Trends</h4>
-          <pre>Rank,Trend,Normalised volume,Weekly change,Monthly change,Yearly change
-1,outfit ideas,100,-30%,-3%,3%
-2,spring outfits,77,-50%,-4%,-30%
-17,coachella outfits,16,200%,600%,10000%+</pre>
+          <pre>Rank,Trend,Weekly change,Monthly change,Yearly change,volume
+1,leavers shirt,10%,100%,100%,100
+2,day party outfit,-10%,200%,200%,98
+3,mamma mia outfits,5%,200%,0%,100</pre>
         </div>
       </div>
     </div>
@@ -670,19 +666,14 @@ function parsePinterest(rows) {
 
   const rankCol  = h.findIndex(c => c === 'rank' || c.replace(/^﻿/, '') === 'rank');
   const trendCol = h.findIndex(c => c === 'trend');
-  // Column BF (index 57) = most recent week's normalised volume in the full Pinterest export.
-  // Fall back to named/positional detection only for narrow test files.
-  let volCol;
-  if (rows[hi].length > 20) {
-    volCol = 57;
-  } else {
-    volCol = h.findIndex(c =>
-      c.includes('normalised') || c.includes('normalized') ||
-      c === 'volume' || c === 'vol' ||
-      (c.includes('volume') && !c.includes('change'))
-    );
-    if (volCol < 0 && trendCol >= 0 && h.length > trendCol + 1) volCol = trendCol + 1;
-  }
+  // Volume is in col F (index 5): Rank | Trend | Weekly | Monthly | Yearly | Volume
+  // Detect by name first; fall back to position 5 if the header label differs.
+  let volCol = h.findIndex(c =>
+    c === 'volume' || c === 'vol' ||
+    c.includes('normalised') || c.includes('normalized') ||
+    (c.includes('volume') && !c.includes('change'))
+  );
+  if (volCol < 0) volCol = 5;
 
   const wkCol = h.findIndex(c => c.includes('weekly') || c.includes('week'));
   const moCol = h.findIndex(c => c.includes('monthly') || c.includes('month'));
