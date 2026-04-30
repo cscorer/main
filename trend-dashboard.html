@@ -306,6 +306,18 @@
     .momentum-fill { height: 6px; background: var(--green); border-radius: 3px; min-width: 2px; }
     .momentum-num { font-size: 12px; font-weight: 700; }
 
+    /* Relevance bar */
+    .relevance-bar { display: flex; align-items: center; gap: 8px; }
+    .relevance-fill { height: 6px; background: linear-gradient(90deg, #4ade80, #007A33); border-radius: 3px; min-width: 2px; }
+    .relevance-num { font-size: 12px; font-weight: 700; color: var(--green); }
+
+    /* Predicted trend card */
+    .stat-card.predict { background: #0f1a12; border-color: var(--green); position: relative; overflow: hidden; }
+    .stat-card.predict::before { content: ''; position: absolute; top: -24px; right: -24px; width: 90px; height: 90px; background: var(--green); border-radius: 50%; opacity: .15; }
+    .stat-card.predict .stat-label { color: var(--green); }
+    .stat-card.predict .stat-value { color: #fff; font-size: 17px !important; }
+    .stat-card.predict .stat-sub { color: rgba(255,255,255,.5); }
+
     /* Insights card */
     .insights-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
     .insights-hd { background: var(--dark); padding: 15px 22px; display: flex; align-items: center; gap: 10px; }
@@ -680,7 +692,10 @@ function parsePinterest(rows) {
   let hi = -1;
   for (let i = 0; i < rows.length; i++) {
     const cells = rows[i].map(c => (c || '').toLowerCase().trim());
-    if (cells.includes('rank') || cells.includes('trend')) { hi = i; break; }
+    // Require BOTH 'trend' AND a structural metric column to avoid matching metadata rows
+    const hasTrend  = cells.includes('trend');
+    const hasMetric = cells.some(c => c === 'rank' || c.includes('weekly') || c.includes('normalised') || c.includes('normalized') || c.includes('volume'));
+    if (hasTrend && hasMetric) { hi = i; break; }
   }
   if (hi < 0) return null;
   const h       = rows[hi].map(c => (c || '').toLowerCase().trim());
@@ -698,11 +713,11 @@ function parsePinterest(rows) {
     if (!term || /^data in the/i.test(term)) continue;
     terms.push({
       term,
-      rank:          rankCol >= 0 ? (parseInt(r[rankCol])   || terms.length + 1) : terms.length + 1,
-      normVolume:    volCol  >= 0 ? (parseFloat(r[volCol])  || null)             : null,
-      weeklyChange:  wkCol   >= 0 ? parseGrowth(r[wkCol])                        : null,
-      monthlyChange: moCol   >= 0 ? parseGrowth(r[moCol])                        : null,
-      yearlyChange:  yrCol   >= 0 ? parseGrowth(r[yrCol])                        : null,
+      rank:          rankCol >= 0 ? (parseInt(r[rankCol]) || terms.length + 1) : terms.length + 1,
+      normVolume:    volCol  >= 0 ? safeNum(r[volCol])    : null,
+      weeklyChange:  wkCol   >= 0 ? parseGrowth(r[wkCol])  : null,
+      monthlyChange: moCol   >= 0 ? parseGrowth(r[moCol])  : null,
+      yearlyChange:  yrCol   >= 0 ? parseGrowth(r[yrCol])  : null,
     });
   }
   return terms.length ? { type: 'keyword_list', platform: 'pinterest', terms } : null;
@@ -713,6 +728,13 @@ function parseGrowth(s) {
   if (!s) return null;
   const n = parseFloat(String(s).replace(/[+%\s,]/g, ''));
   return isNaN(n) ? null : n;
+}
+function safeNum(s) {
+  if (s == null) return null;
+  const str = String(s).replace(/[+%,\s]/g, '').trim();
+  if (!str || str === '-') return null;
+  const v = parseFloat(str);
+  return isNaN(v) ? null : v;
 }
 function parseCompact(s) {
   if (!s && s !== 0) return null;
@@ -812,6 +834,7 @@ function renderCross(el) {
   const multi     = cross.filter(d => d.platforms.length > 1);
   const breakouts = cross.filter(d => d.hasBreakout);
   const top       = cross[0];
+  const predicted = predictTrend(cross);
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -823,6 +846,7 @@ function renderCross(el) {
       <div class="stat-card"><div class="stat-label">Cross-Platform</div><div class="stat-value">${multi.length}</div><div class="stat-sub">appearing on 2+ platforms</div></div>
       <div class="stat-card accent"><div class="stat-label">Top Momentum Trend</div><div class="stat-value" style="font-size:18px">${top ? cap(top.keyword) : '—'}</div><div class="stat-sub">${top ? top.platforms.map(p => PLAT[p].label).join(' · ') : ''}</div></div>
       <div class="stat-card"><div class="stat-label">Breakout Terms</div><div class="stat-value">${breakouts.length}</div><div class="stat-sub">Google breakout signals</div></div>
+      <div class="stat-card predict"><div class="stat-label">&#9670; Predicted Next Trend</div><div class="stat-value">${predicted ? cap(predicted.keyword) : '—'}</div><div class="stat-sub">${predicted ? predicted.signal : 'Load more data for predictions'}</div></div>
     </div>
     <div class="chart-row">
       <div class="chart-card"><h3>Momentum Score — Top 12</h3><p class="chart-desc">Platform presence + growth rate + breakout signal</p><div class="chart-wrap" style="height:320px"><canvas id="cMomentumChart"></canvas></div></div>
@@ -837,7 +861,7 @@ function renderCross(el) {
           ${hasData('tiktok')    ? '<th>TikTok Views</th>' : ''}
           ${hasData('pinterest') ? '<th>Pinterest Vol</th>': ''}
         </tr></thead>
-        <tbody>${cross.slice(0, 25).map((d, i) => `<tr>
+        <tbody>${cross.slice(0, 20).map((d, i) => `<tr>
           <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
           <td class="td-bold">${cap(d.keyword)}</td>
           <td>${d.platforms.map(p => `<span class="ptag ${p}">${PLAT[p].label}</span>`).join('')}</td>
@@ -904,21 +928,23 @@ function renderGoogle(el) {
     </div>
     ${top.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Top <em>Queries</em></div></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>#</th><th>Query</th><th>Search Interest</th></tr></thead>
-        <tbody>${topS.map((t, i) => `<tr>
+        <thead><tr><th>#</th><th>Query</th><th>Search Interest</th><th>Relevance</th></tr></thead>
+        <tbody>${topS.slice(0, 20).map((t, i) => `<tr>
           <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
           <td class="td-bold">${cap(t.query)}</td>
           <td class="td-green">${t.searchInterest}</td>
+          <td>${relevanceBadge(relevanceScore('google', t, [...top, ...rising]))}</td>
         </tr>`).join('')}</tbody>
       </table></div></div>` : ''}
     ${rising.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Rising <em>Queries</em></div></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>#</th><th>Query</th><th>Search Interest</th><th>Growth</th></tr></thead>
-        <tbody>${riseS.map((t, i) => `<tr>
+        <thead><tr><th>#</th><th>Query</th><th>Search Interest</th><th>Growth</th><th>Relevance</th></tr></thead>
+        <tbody>${riseS.slice(0, 20).map((t, i) => `<tr>
           <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
           <td class="td-bold">${cap(t.query)}</td>
           <td>${t.searchInterest}</td>
           <td>${t.isBreakout ? '<span class="badge-breakout">Breakout</span>' : growthBadge(t.change, false)}</td>
+          <td>${relevanceBadge(relevanceScore('google', t, [...top, ...rising]))}</td>
         </tr>`).join('')}</tbody>
       </table></div></div>` : ''}
     <div class="insights-card"><div class="insights-hd"><div class="insights-icon">💡</div><h3>Google Insights</h3></div><div class="insights-body" id="platInsights"></div></div>`;
@@ -965,26 +991,28 @@ function renderTikTok(el) {
     </div>
     ${top.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Top <em>Hashtags</em></div></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Rank</th><th>Hashtag</th><th>Views</th><th>Lifetime Views</th><th>Posts</th></tr></thead>
-        <tbody>${topS.map((t, i) => `<tr>
+        <thead><tr><th>Rank</th><th>Hashtag</th><th>Views</th><th>Lifetime Views</th><th>Posts</th><th>Relevance</th></tr></thead>
+        <tbody>${(()=>{ const all=[...top,...rising]; return topS.slice(0,20).map((t,i)=>`<tr>
           <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${t.rankPosition || i + 1}</td>
           <td class="td-bold">#${cap(t.name)}</td>
           <td class="td-green">${t.views != null ? fmtCompact(t.views) : '—'}</td>
           <td>${t.viewsLifetime != null ? fmtCompact(t.viewsLifetime) : '—'}</td>
           <td>${t.posts != null ? fmtCompact(t.posts) : '—'}</td>
-        </tr>`).join('')}</tbody>
+          <td>${relevanceBadge(relevanceScore('tiktok', t, all))}</td>
+        </tr>`).join(''); })()}</tbody>
       </table></div></div>` : ''}
     ${rising.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Rising <em>Hashtags</em></div></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Rank</th><th>Hashtag</th><th>Rank Position</th><th>Rank Change</th><th>Views</th><th>Posts</th></tr></thead>
-        <tbody>${riseS.map((t, i) => `<tr>
+        <thead><tr><th>Rank</th><th>Hashtag</th><th>Rank Position</th><th>Rank Change</th><th>Views</th><th>Posts</th><th>Relevance</th></tr></thead>
+        <tbody>${(()=>{ const all=[...top,...rising]; return riseS.slice(0,20).map((t,i)=>`<tr>
           <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${i + 1}</td>
           <td class="td-bold">#${cap(t.name)}</td>
           <td>${t.rankPosition || '—'}</td>
           <td>${t.rankChange != null ? growthBadge(t.rankChange, false) : '—'}</td>
           <td>${t.views != null ? fmtCompact(t.views) : '—'}</td>
           <td>${t.posts != null ? fmtCompact(t.posts) : '—'}</td>
-        </tr>`).join('')}</tbody>
+          <td>${relevanceBadge(relevanceScore('tiktok', t, all))}</td>
+        </tr>`).join(''); })()}</tbody>
       </table></div></div>` : ''}
     <div class="insights-card"><div class="insights-hd"><div class="insights-icon">💡</div><h3>TikTok Insights</h3></div><div class="insights-body" id="platInsights"></div></div>`;
 
@@ -1007,9 +1035,12 @@ function renderTikTok(el) {
 function renderPinterest(el) {
   const top    = state.pinterest.top?.terms    || [];
   const rising = state.pinterest.rising?.terms || [];
+  const all    = [...top, ...rising];
   const topS   = [...top].sort((a, b) => (b.normVolume || 0) - (a.normVolume || 0));
   const riseS  = [...rising].sort((a, b) => (b.weeklyChange || b.monthlyChange || 0) - (a.weeklyChange || a.monthlyChange || 0));
-  const strongYoY = [...top, ...rising].filter(t => (t.yearlyChange || 0) > 50).length;
+  // Fastest growing: all terms sorted by weeklyChange desc
+  const fastGrow = [...all].filter(t => t.weeklyChange != null).sort((a, b) => b.weeklyChange - a.weeklyChange).slice(0, 10);
+  const strongYoY = all.filter(t => (t.yearlyChange || 0) > 50).length;
 
   el.innerHTML = `
     <div class="section-hd"><div>
@@ -1018,21 +1049,25 @@ function renderPinterest(el) {
     </div></div>
     <div class="stat-grid">
       <div class="stat-card"><div class="stat-label">Total Trends</div><div class="stat-value">${top.length + rising.length}</div><div class="stat-sub">${top.length} top · ${rising.length} rising</div></div>
-      ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Search Volume</div><div class="stat-value" style="font-size:18px">${cap(topS[0].term)}</div><div class="stat-sub">Volume: ${topS[0].normVolume || '—'}/100</div></div>` : ''}
+      ${topS[0] ? `<div class="stat-card accent"><div class="stat-label">#1 by Search Volume</div><div class="stat-value" style="font-size:18px">${cap(topS[0].term)}</div><div class="stat-sub">Volume: ${topS[0].normVolume != null ? topS[0].normVolume : '—'}/100</div></div>` : ''}
       ${riseS[0] ? `<div class="stat-card dark"><div class="stat-label">#1 Rising Trend</div><div class="stat-value" style="font-size:18px">${cap(riseS[0].term)}</div><div class="stat-sub">${riseS[0].weeklyChange != null ? (riseS[0].weeklyChange > 0 ? '+' : '') + riseS[0].weeklyChange + '% weekly' : ''}</div></div>` : ''}
       <div class="stat-card"><div class="stat-label">Strong YoY Growth</div><div class="stat-value">${strongYoY}</div><div class="stat-sub">trends up &gt;50% year-on-year</div></div>
     </div>
+    ${fastGrow.length ? `<div class="chart-row single">
+      <div class="chart-card"><h3>Fastest Growing Trends — Weekly</h3><p class="chart-desc">Week-on-week growth % across all Pinterest trends (top &amp; rising combined)</p><div class="chart-wrap" style="height:280px"><canvas id="piFastChart"></canvas></div></div>
+    </div>` : ''}
     <div class="chart-row${!top.length || !rising.length ? ' single' : ''}">
       ${top.length ? `<div class="chart-card"><h3>Top Trends — Search Volume</h3><p class="chart-desc">Normalised search volume (0–100)</p><div class="chart-wrap" style="height:300px"><canvas id="piTopChart"></canvas></div></div>` : ''}
       ${rising.length ? `<div class="chart-card"><h3>Rising Trends — Weekly Change</h3><p class="chart-desc">Week-on-week search volume change</p><div class="chart-wrap" style="height:300px"><canvas id="piRisingChart"></canvas></div></div>` : ''}
     </div>
     ${top.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Top <em>Trends</em></div></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Rank</th><th>Trend</th><th>Volume</th><th>Weekly</th><th>Monthly</th><th>Yearly</th></tr></thead>
-        <tbody>${topS.map((t, i) => `<tr>
+        <thead><tr><th>Rank</th><th>Trend</th><th>Volume</th><th>Relevance</th><th>Weekly</th><th>Monthly</th><th>Yearly</th></tr></thead>
+        <tbody>${topS.slice(0, 20).map((t, i) => `<tr>
           <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${t.rank || i + 1}</td>
           <td class="td-bold">${cap(t.term)}</td>
           <td class="td-green">${t.normVolume != null ? t.normVolume : '—'}</td>
+          <td>${relevanceBadge(relevanceScore('pinterest', t, all))}</td>
           <td>${t.weeklyChange  != null ? growthBadge(t.weeklyChange,  false) : '—'}</td>
           <td>${t.monthlyChange != null ? growthBadge(t.monthlyChange, false) : '—'}</td>
           <td>${t.yearlyChange  != null ? growthBadge(t.yearlyChange,  false) : '—'}</td>
@@ -1040,11 +1075,12 @@ function renderPinterest(el) {
       </table></div></div>` : ''}
     ${rising.length ? `<div class="table-section"><div class="section-hd"><div class="section-title">Rising <em>Trends</em></div></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Rank</th><th>Trend</th><th>Volume</th><th>Weekly</th><th>Monthly</th><th>Yearly</th></tr></thead>
-        <tbody>${riseS.map((t, i) => `<tr>
+        <thead><tr><th>Rank</th><th>Trend</th><th>Volume</th><th>Relevance</th><th>Weekly</th><th>Monthly</th><th>Yearly</th></tr></thead>
+        <tbody>${riseS.slice(0, 20).map((t, i) => `<tr>
           <td class="rank-num ${i < 3 ? 'rank-top' : 'rank-rest'}">${t.rank || i + 1}</td>
           <td class="td-bold">${cap(t.term)}</td>
           <td>${t.normVolume != null ? t.normVolume : '—'}</td>
+          <td>${relevanceBadge(relevanceScore('pinterest', t, all))}</td>
           <td>${t.weeklyChange  != null ? growthBadge(t.weeklyChange,  false) : '—'}</td>
           <td>${t.monthlyChange != null ? growthBadge(t.monthlyChange, false) : '—'}</td>
           <td>${t.yearlyChange  != null ? growthBadge(t.yearlyChange,  false) : '—'}</td>
@@ -1053,15 +1089,22 @@ function renderPinterest(el) {
     <div class="insights-card"><div class="insights-hd"><div class="insights-icon">💡</div><h3>Pinterest Insights</h3></div><div class="insights-body" id="platInsights"></div></div>`;
 
   setTimeout(() => {
+    if (fastGrow.length) {
+      mkHorizBar('piFastChart',
+        fastGrow.map(t => cap(t.term)),
+        fastGrow.map(t => t.weeklyChange),
+        fastGrow.map(t => t.weeklyChange >= 0 ? '#E60023' : '#888'),
+        'Weekly Change %', v => (v > 0 ? '+' : '') + v + '%');
+    }
     if (top.length) {
       const t10 = topS.slice(0, 10);
-      mkHorizBar('piTopChart', t10.map(t => cap(t.term)), t10.map(t => t.normVolume || 0),
+      mkHorizBar('piTopChart', t10.map(t => cap(t.term)), t10.map(t => t.normVolume != null ? t.normVolume : 0),
         t10.map((_, i) => i === 0 ? '#E60023' : i < 3 ? '#E60023bb' : '#E6002344'), 'Volume');
     }
     if (rising.length) {
       const r10 = riseS.slice(0, 10);
-      mkHorizBar('piRisingChart', r10.map(t => cap(t.term)), r10.map(t => t.weeklyChange || t.monthlyChange || 0),
-        r10.map(t => (t.weeklyChange || t.monthlyChange || 0) >= 0 ? '#E60023' : '#888'), 'Change %', v => v + '%');
+      mkHorizBar('piRisingChart', r10.map(t => cap(t.term)), r10.map(t => t.weeklyChange != null ? t.weeklyChange : (t.monthlyChange || 0)),
+        r10.map(t => (t.weeklyChange != null ? t.weeklyChange : (t.monthlyChange || 0)) >= 0 ? '#E60023' : '#888'), 'Change %', v => v + '%');
     }
     generatePinterestInsights(state.pinterest);
   }, 50);
@@ -1219,6 +1262,51 @@ function generatePinterestInsights(p) {
   }
 
   el.innerHTML = insightHTML(bullets.length ? bullets : ['Upload Pinterest trends CSV to generate insights.']);
+}
+
+// ── Predict next trend ─────────────────────────────────────────────────────
+function predictTrend(cross) {
+  if (!cross.length) return null;
+  // Priority 1: Breakout term that isn't already the #1 momentum leader
+  const breakouts = cross.filter(d => d.hasBreakout && d !== cross[0]);
+  if (breakouts.length) return { keyword: breakouts[0].keyword, signal: 'Google Breakout signal' };
+  // Priority 2: Single-platform rising term with >80% avg growth (early-stage)
+  const early = cross.filter(d => d.platforms.length === 1 && d.avgGrowth > 80 && d !== cross[0])
+    .sort((a, b) => b.avgGrowth - a.avgGrowth);
+  if (early.length) return { keyword: early[0].keyword, signal: `+${Math.round(early[0].avgGrowth)}% — early-stage signal` };
+  // Priority 3: Highest growth term overall (excluding current leader)
+  const growing = [...cross].filter(d => d !== cross[0] && d.avgGrowth > 10)
+    .sort((a, b) => b.avgGrowth - a.avgGrowth);
+  if (growing.length) return { keyword: growing[0].keyword, signal: `+${Math.round(growing[0].avgGrowth)}% growth velocity` };
+  // Fallback: second momentum term
+  return cross[1] ? { keyword: cross[1].keyword, signal: 'Rising momentum' } : null;
+}
+
+// ── Relevance score (0–100) ────────────────────────────────────────────────
+function relevanceScore(platform, t, allTerms) {
+  if (platform === 'google') {
+    const vol    = t.searchInterest || 0;
+    const growth = t.isBreakout ? 100 : Math.min(Math.max(t.change || 0, 0), 500) / 5;
+    return Math.round(vol * 0.6 + growth * 0.4);
+  }
+  if (platform === 'tiktok') {
+    const maxV   = Math.max(1, ...allTerms.map(x => x.views || 0));
+    const maxRC  = Math.max(1, ...allTerms.map(x => Math.abs(x.rankChange || 0)));
+    const vol    = ((t.views || 0) / maxV) * 100;
+    const growth = (Math.max(t.rankChange || 0, 0) / maxRC) * 100;
+    return Math.round(vol * 0.6 + growth * 0.4);
+  }
+  if (platform === 'pinterest') {
+    const vol    = t.normVolume || 0;
+    const wk     = t.weeklyChange != null ? t.weeklyChange : (t.monthlyChange || 0);
+    const growthClamped = Math.min(Math.max(wk, -50), 300);
+    const growth = ((growthClamped + 50) / 350) * 100;
+    return Math.round(vol * 0.6 + growth * 0.4);
+  }
+  return 0;
+}
+function relevanceBadge(score) {
+  return `<div class="relevance-bar"><div class="relevance-fill" style="width:${score}px"></div><span class="relevance-num">${score}</span></div>`;
 }
 
 // ── Display helpers ────────────────────────────────────────────────────────
