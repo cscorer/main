@@ -811,16 +811,7 @@ function destroyCharts() {
   Object.keys(charts).forEach(k => delete charts[k]);
 }
 
-// ── Render dispatcher ──────────────────────────────────────────────────────
-function renderDashboard() {
-  destroyCharts();
-  const el = document.getElementById('dashboardContent');
-  const v  = state.view;
-  if      (v === 'cross')     renderCross(el);
-  else if (v === 'google')    renderPlatform(el, 'google',    state.google);
-  else if (v === 'tiktok')    renderPlatform(el, 'tiktok',    state.tiktok);
-  else if (v === 'pinterest') renderPlatform(el, 'pinterest', state.pinterest);
-}
+// ── Render dispatcher (overridden after insight generators are defined) ────
 
 // ── Cross-platform view ────────────────────────────────────────────────────
 function renderCross(el) {
@@ -926,15 +917,7 @@ function renderCross(el) {
   }, 50);
 }
 
-// ── Platform-specific view ─────────────────────────────────────────────────
-function renderPlatform(el, platform, data) {
-  if (!data) {
-    el.innerHTML = `<div class="empty-state"><h3>No ${PLAT[platform].label} data loaded</h3><p>Upload a ${PLAT[platform].label} CSV file above to see platform insights.</p></div>`;
-    return;
-  }
-  if (data.type === 'timeseries') renderTimeseries(el, platform, data);
-  else                            renderRanking(el, platform, data);
-}
+// ── Platform-specific view (renderPlatform re-declared at bottom) ──────────
 
 // Timeseries view (Google / Pinterest / TikTok timeseries)
 function renderTimeseries(el, platform, data) {
@@ -1268,6 +1251,205 @@ function fmtCompact(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
   if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return Math.round(n).toLocaleString();
+}
+
+// ── Insight generators ─────────────────────────────────────────────────────
+
+function insightHTML(bullets) {
+  return bullets.map(b => `
+    <div class="insight-row">
+      <div class="insight-dot"></div>
+      <div class="insight-text">${b}</div>
+    </div>`).join('');
+}
+
+function generateCrossInsights(cross) {
+  const el = document.getElementById('crossInsights');
+  if (!el) return;
+  const bullets = [];
+  const multi    = cross.filter(d => d.platforms.length > 1);
+  const top      = cross[0];
+  const emerging = cross.filter(d => d.avgGrowth > 30).slice(0, 3);
+  const loaded   = ['google','tiktok','pinterest'].filter(p => state[p]);
+
+  if (!cross.length) {
+    el.innerHTML = insightHTML(['Upload data from at least one platform to generate insights.']);
+    return;
+  }
+
+  // Lead insight — top momentum trend
+  if (top) {
+    const platStr  = top.platforms.map(p => `<strong>${PLAT[p].label}</strong>`).join(', ');
+    const growthStr = top.avgGrowth > 0 ? `, with a <strong>+${top.avgGrowth.toFixed(0)}%</strong> average growth signal` : '';
+    bullets.push(`<strong>${cap(top.keyword)}</strong> leads the momentum ranking, active across ${platStr}${growthStr}. Its cross-platform presence signals broad cultural resonance — a high-confidence content opportunity for M&S.`);
+  }
+
+  // Cross-platform convergence
+  if (multi.length > 0) {
+    const names = multi.slice(0, 3).map(d => `<strong>${cap(d.keyword)}</strong>`).join(', ');
+    bullets.push(`${multi.length} trend${multi.length > 1 ? 's are' : ' is'} converging across platforms simultaneously: ${names}. Convergent trends carry the strongest signal for content investment — audiences are actively searching, watching and saving this content.`);
+  } else if (loaded.length > 1) {
+    bullets.push(`No trends are currently matching across multiple platforms. This may indicate the keywords tracked differ per platform — consider aligning search terms to find overlapping signals.`);
+  }
+
+  // Emerging / fast-growing
+  if (emerging.length > 0) {
+    const list = emerging.map(d => `<strong>${cap(d.keyword)}</strong> (+${d.avgGrowth.toFixed(0)}%)`).join(', ');
+    bullets.push(`High-velocity emerging trends to watch: ${list}. These are accelerating quickly — early activation now allows M&S to establish presence before the trend peaks and CPCs rise.`);
+  }
+
+  // Platform-exclusive signals
+  ['google','tiktok','pinterest'].forEach(p => {
+    if (!state[p]) return;
+    const exclusive = cross.filter(d => d.platforms.length === 1 && d.platforms[0] === p).slice(0, 2);
+    if (exclusive.length) {
+      const names = exclusive.map(d => `<strong>${cap(d.keyword)}</strong>`).join(' and ');
+      bullets.push(`${PLAT[p].label}-exclusive: ${names} ${exclusive.length > 1 ? 'are' : 'is'} trending only on ${PLAT[p].label} without cross-platform validation. Monitor for broader breakout potential — these could be leading indicators of the next multi-platform wave.`);
+    }
+  });
+
+  // Declining / low-momentum
+  const declining = cross.filter(d => d.avgGrowth < -15).slice(0, 2);
+  if (declining.length) {
+    const names = declining.map(d => `<strong>${cap(d.keyword)}</strong>`).join(' and ');
+    bullets.push(`${names} ${declining.length > 1 ? 'are showing' : 'is showing'} negative growth signals. Consider reducing content investment in these areas or repositioning the narrative to maintain relevance.`);
+  }
+
+  el.innerHTML = insightHTML(bullets);
+}
+
+function generateTimeseriesInsights(platform, data, stats) {
+  const el = document.getElementById('platInsights');
+  if (!el || !stats) return;
+  const bullets   = [];
+  const keywords  = data.keywords.filter(k => stats[k]);
+  const byLatest  = [...keywords].sort((a, b) => (stats[b].latest  || 0) - (stats[a].latest  || 0));
+  const byGrowth  = [...keywords].sort((a, b) => (stats[b].growth  || 0) - (stats[a].growth  || 0));
+  const byMoment  = [...keywords].sort((a, b) => (stats[b].momentum|| 0) - (stats[a].momentum|| 0));
+  const label     = PLAT[platform].label;
+
+  // Top by current interest
+  const top = byLatest[0];
+  if (top) {
+    bullets.push(`<strong>${cap(top)}</strong> leads ${label} with a current interest score of <strong>${Math.round(stats[top].latest)}/100</strong>, ${stats[top].latest >= 70 ? 'indicating peak-level audience demand.' : stats[top].latest >= 40 ? 'reflecting steady mid-level demand.' : 'though interest remains moderate — consider whether search intent matches M&S content.'}`);
+  }
+
+  // Fastest growing
+  const growers = byGrowth.filter(k => (stats[k].growth || 0) > 10).slice(0, 2);
+  if (growers.length) {
+    const list = growers.map(k => `<strong>${cap(k)}</strong> (+${stats[k].growth.toFixed(0)}%)`).join(' and ');
+    bullets.push(`${list} ${growers.length > 1 ? 'are posting' : 'is posting'} strong growth over the tracked period. Rising search interest is an early cue to brief content and paid media teams before the trend reaches its ceiling.`);
+  }
+
+  // Accelerating momentum
+  const accel = byMoment.filter(k => (stats[k].momentum || 0) > 10).slice(0, 2);
+  if (accel.length) {
+    const list = accel.map(k => `<strong>${cap(k)}</strong>`).join(' and ');
+    bullets.push(`${list} ${accel.length > 1 ? 'are' : 'is'} accelerating in the most recent weeks. Accelerating trends are typically within 2–4 weeks of their peak — now is the optimal window for M&S to publish hero content.`);
+  }
+
+  // Decelerating
+  const decel = byMoment.filter(k => (stats[k].momentum || 0) < -10).slice(0, 2);
+  if (decel.length) {
+    const list = decel.map(k => `<strong>${cap(k)}</strong>`).join(' and ');
+    bullets.push(`${list} ${decel.length > 1 ? 'are decelerating' : 'is decelerating'} in recent weeks despite prior performance. Shift reactive content plans to higher-momentum keywords to maximise reach while interest is peaking.`);
+  }
+
+  // Evergreen (high, stable)
+  const evergreen = keywords.filter(k => stats[k].latest > 50 && Math.abs(stats[k].growth) < 10);
+  if (evergreen.length) {
+    const list = evergreen.slice(0, 2).map(k => `<strong>${cap(k)}</strong>`).join(' and ');
+    bullets.push(`${list} maintain consistently high interest with minimal fluctuation. These evergreen signals should anchor M&S's always-on SEO and content strategy, providing reliable baseline traffic.`);
+  }
+
+  // Declining
+  const declining = byGrowth.filter(k => (stats[k].growth || 0) < -15).slice(0, 2);
+  if (declining.length) {
+    const list = declining.map(k => `<strong>${cap(k)}</strong> (${stats[k].growth.toFixed(0)}%)`).join(' and ');
+    bullets.push(`${list} ${declining.length > 1 ? 'have declined' : 'has declined'} significantly over the period. Review associated content performance — if engagement is also falling, consider sunsetting these topics in favour of higher-momentum alternatives.`);
+  }
+
+  el.innerHTML = insightHTML(bullets);
+}
+
+function generateRankingInsights(platform, data) {
+  const el = document.getElementById('platInsights');
+  if (!el) return;
+  const bullets  = [];
+  const { topics } = data;
+  const byViews  = [...topics].filter(t => t.views  !== null).sort((a, b) => b.views  - a.views);
+  const byGrowth = [...topics].filter(t => t.growth !== null).sort((a, b) => b.growth - a.growth);
+  const avgGrowth = byGrowth.length ? byGrowth.reduce((s, t) => s + t.growth, 0) / byGrowth.length : null;
+  const label     = PLAT[platform].label;
+
+  // Volume leader
+  if (byViews[0]) {
+    bullets.push(`<strong>#${cap(byViews[0].name)}</strong> dominates by volume with <strong>${fmtCompact(byViews[0].views)}</strong> total views — the highest-reach trend in the dataset, indicating mass-market cultural penetration that M&S can credibly activate against.`);
+  }
+
+  // Growth leader
+  if (byGrowth[0] && byGrowth[0].growth > 0) {
+    const diff = byGrowth[0].name !== byViews[0]?.name;
+    bullets.push(`<strong>#${cap(byGrowth[0].name)}</strong> is the fastest-growing trend at <strong>+${byGrowth[0].growth.toFixed(0)}%</strong>.${diff ? ` The fact that this differs from the volume leader suggests it is a newer trend breaking into the space — an early-mover opportunity before competition intensifies.` : ` Its combination of high volume and strong growth makes it the standout priority.`}`);
+  }
+
+  // Average growth benchmark
+  if (avgGrowth !== null) {
+    const aboveAvg = byGrowth.filter(t => t.growth > avgGrowth);
+    bullets.push(`The average growth rate across tracked ${label} trends is <strong>+${avgGrowth.toFixed(0)}%</strong>. <strong>${aboveAvg.length}</strong> topic${aboveAvg.length !== 1 ? 's are' : ' is'} beating this benchmark: ${aboveAvg.slice(0, 3).map(t => `#${cap(t.name)}`).join(', ')}.`);
+  }
+
+  // Declining topics
+  const declining = byGrowth.filter(t => t.growth < 0).slice(0, 2);
+  if (declining.length) {
+    const list = declining.map(t => `<strong>#${cap(t.name)}</strong> (${t.growth.toFixed(0)}%)`).join(' and ');
+    bullets.push(`${list} ${declining.length > 1 ? 'are in decline' : 'is in decline'}. Despite any residual volume, declining hashtags carry diminishing organic reach — deprioritise these in content planning.`);
+  }
+
+  el.innerHTML = insightHTML(bullets);
+}
+
+// Wire insight generation into renders (called after DOM paint)
+const _origRenderCross      = renderCross;
+const _origRenderTimeseries = renderTimeseries;
+const _origRenderRanking    = renderRanking;
+
+// Patch renderCross to call insight generator post-paint
+window.renderCross = function(el) {
+  _origRenderCross(el);
+  setTimeout(() => generateCrossInsights(analyzeCross()), 60);
+};
+
+// Patch renderTimeseries
+window.renderTimeseries = function(el, platform, data) {
+  _origRenderTimeseries(el, platform, data);
+  setTimeout(() => generateTimeseriesInsights(platform, data, analyzeTimeSeries(data)), 60);
+};
+
+// Patch renderRanking
+window.renderRanking = function(el, platform, data) {
+  _origRenderRanking(el, platform, data);
+  setTimeout(() => generateRankingInsights(platform, data), 60);
+};
+
+// Re-wire dispatcher to use patched versions
+function renderDashboard() {
+  destroyCharts();
+  const el = document.getElementById('dashboardContent');
+  const v  = state.view;
+  if      (v === 'cross')     window.renderCross(el);
+  else if (v === 'google')    renderPlatform(el, 'google',    state.google);
+  else if (v === 'tiktok')    renderPlatform(el, 'tiktok',    state.tiktok);
+  else if (v === 'pinterest') renderPlatform(el, 'pinterest', state.pinterest);
+}
+
+function renderPlatform(el, platform, data) {
+  if (!data) {
+    el.innerHTML = `<div class="empty-state"><h3>No ${PLAT[platform].label} data loaded</h3><p>Upload a ${PLAT[platform].label} CSV file above to see platform insights.</p></div>`;
+    return;
+  }
+  if (data.type === 'timeseries') window.renderTimeseries(el, platform, data);
+  else                            window.renderRanking(el, platform, data);
 }
 </script>
 </body>
