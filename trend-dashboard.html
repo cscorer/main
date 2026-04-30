@@ -451,5 +451,241 @@
   <strong>DEPT® &times; M&amp;S</strong> &mdash; Trend Intelligence Dashboard &nbsp;&middot;&nbsp; Confidential
 </footer>
 
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const state = {
+  google:    null,   // { type:'timeseries', keywords:[], series:[{date,dateStr,values}] }
+  tiktok:    null,   // { type:'timeseries'|'ranking', ... }
+  pinterest: null,   // { type:'timeseries', keywords:[], series:[{date,dateStr,values}] }
+  view:      'cross',
+};
+
+// ── Platform meta ──────────────────────────────────────────────────────────
+const PLAT = {
+  google:    { label: 'Google',    color: '#4285F4', bg: '#e8f0fe' },
+  tiktok:    { label: 'TikTok',    color: '#111111', bg: '#f0f0f0' },
+  pinterest: { label: 'Pinterest', color: '#E60023', bg: '#fde8ea' },
+};
+
+// ── Wire up upload cards ───────────────────────────────────────────────────
+['google', 'tiktok', 'pinterest'].forEach(p => {
+  const card  = document.getElementById(p + 'Card');
+  const input = document.getElementById(p + 'File');
+
+  card.addEventListener('click', () => input.click());
+
+  card.addEventListener('dragover', e => {
+    e.preventDefault();
+    card.classList.add('drag-over');
+  });
+  card.addEventListener('dragleave', e => {
+    if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+  });
+  card.addEventListener('drop', e => {
+    e.preventDefault();
+    card.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) loadFile(p, f);
+  });
+  input.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) loadFile(p, f);
+    input.value = '';
+  });
+});
+
+function loadFile(platform, file) {
+  Papa.parse(file, {
+    header: false,
+    skipEmptyLines: false,
+    complete: ({ data }) => {
+      const parsed = parse(platform, data);
+      if (!parsed) {
+        alert('Could not recognise the CSV format for ' + PLAT[platform].label + '. Check the expected format guide below the upload cards.');
+        return;
+      }
+      state[platform] = parsed;
+      markLoaded(platform, file.name);
+      onDataChange();
+    },
+    error: err => alert('Parse error: ' + err.message),
+  });
+}
+
+function markLoaded(platform, fileName) {
+  const card = document.getElementById(platform + 'Card');
+  card.classList.add('loaded');
+  document.getElementById(platform + 'FileName').textContent = fileName;
+}
+
+// ── Format-guide toggle ────────────────────────────────────────────────────
+document.getElementById('fmtToggle').addEventListener('click', () => {
+  const body  = document.getElementById('fmtBody');
+  const arrow = document.getElementById('fmtArrow');
+  const open  = body.classList.toggle('open');
+  arrow.innerHTML = open ? '&#9650;' : '&#9660;';
+});
+
+// ── Platform-select change ─────────────────────────────────────────────────
+document.getElementById('platformSelect').addEventListener('change', e => {
+  state.view = e.target.value;
+  renderDashboard();
+});
+
+// ── Parsers ────────────────────────────────────────────────────────────────
+
+function parse(platform, rows) {
+  const nonEmpty = rows.filter(r => r.some(c => (c || '').trim()));
+  if (nonEmpty.length < 2) return null;
+
+  if (platform === 'google' || platform === 'pinterest') {
+    return parseTimeSeries(nonEmpty, platform);
+  }
+  // TikTok: detect ranking vs timeseries
+  return parseTikTok(nonEmpty);
+}
+
+// Shared time-series parser (Google + Pinterest)
+function parseTimeSeries(rows, platform) {
+  const headerIdx = findHeaderRow(rows);
+  if (headerIdx === null) return null;
+
+  const headers   = rows[headerIdx].map(h => (h || '').trim());
+  const dataStart = headerIdx + 1;
+
+  // Drop the date column; skip any isPartial / empty columns
+  const keywords = headers.slice(1).filter(h => h && !h.toLowerCase().includes('ispartial'));
+  if (!keywords.length) return null;
+
+  const series = [];
+  for (let i = dataStart; i < rows.length; i++) {
+    const row     = rows[i];
+    const dateStr = (row[0] || '').trim();
+    if (!dateStr || dateStr.toLowerCase().includes('ispartial')) continue;
+
+    const date = parseDate(dateStr);
+    if (!date) continue;
+
+    const values = {};
+    keywords.forEach((kw, ki) => {
+      const raw = (row[ki + 1] || '').replace(/[<>%]/g, '').trim();
+      const v   = parseFloat(raw);
+      values[kw] = isNaN(v) ? null : v;
+    });
+    series.push({ date, dateStr, values });
+  }
+
+  if (!series.length) return null;
+  return { type: 'timeseries', keywords, series, platform };
+}
+
+// TikTok: could be a ranking table or a time-series
+function parseTikTok(rows) {
+  const headerIdx = findHeaderRow(rows);
+  if (headerIdx === null) return null;
+
+  const headers = rows[headerIdx].map(h => (h || '').toLowerCase().trim());
+
+  const isRanking = headers.some(h =>
+    ['hashtag','topic','trend','rank','views','growth','posts','video'].some(k => h.includes(k))
+  );
+
+  if (isRanking) return parseTikTokRanking(rows, headerIdx, headers);
+
+  // Fall back to generic timeseries
+  return parseTimeSeries(rows, 'tiktok');
+}
+
+function parseTikTokRanking(rows, headerIdx, headers) {
+  // Map column positions
+  const col = {};
+  headers.forEach((h, i) => {
+    if (!col.name   && ['hashtag','topic','trend','keyword','name'].some(k => h.includes(k))) col.name   = i;
+    if (!col.rank   && h.includes('rank'))                                                     col.rank   = i;
+    if (!col.views  && h.includes('view'))                                                     col.views  = i;
+    if (!col.growth && (h.includes('growth') || h.includes('change') || h === '%'))            col.growth = i;
+    if (!col.posts  && (h.includes('post')  || h.includes('video')  || h.includes('count')))  col.posts  = i;
+  });
+  if (col.name === undefined) col.name = 0;
+
+  const topics = [];
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || !row.some(c => (c || '').trim())) continue;
+
+    const name = stripHash((row[col.name] || '').trim());
+    if (!name) continue;
+
+    topics.push({
+      name,
+      rank:   col.rank   !== undefined ? (parseInt(row[col.rank])          || i - headerIdx) : i - headerIdx,
+      views:  col.views  !== undefined ? parseCompact(row[col.views])  : null,
+      growth: col.growth !== undefined ? parseGrowth(row[col.growth])  : null,
+      posts:  col.posts  !== undefined ? parseCompact(row[col.posts])  : null,
+    });
+  }
+
+  if (!topics.length) return null;
+  return { type: 'ranking', topics, platform: 'tiktok' };
+}
+
+// ── Parser helpers ─────────────────────────────────────────────────────────
+
+// Find the row index that contains the header (date/week/month as first cell,
+// OR contains keyword-like column names)
+function findHeaderRow(rows) {
+  for (let i = 0; i < Math.min(rows.length, 12); i++) {
+    const first = (rows[i][0] || '').toLowerCase().trim();
+    if (['week','date','month','day'].includes(first)) return i;
+
+    // Header row for ranking tables
+    const cells = rows[i].map(c => (c || '').toLowerCase().trim());
+    if (cells.some(c => ['hashtag','topic','trend','keyword','rank','views','growth'].some(k => c.includes(k)))) return i;
+  }
+
+  // Fall back: first row whose first cell looks like a date is probably data row 0 — treat row above as header
+  for (let i = 0; i < Math.min(rows.length, 12); i++) {
+    if (parseDate((rows[i][0] || '').trim())) return Math.max(0, i - 1);
+  }
+  return null;
+}
+
+function parseDate(str) {
+  if (!str) return null;
+  const iso = new Date(str);
+  if (!isNaN(iso)) return iso;
+  // DD/MM/YYYY
+  const p = str.split('/');
+  if (p.length === 3) {
+    const d = new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+
+// Parse numbers with K / M / B suffixes and currency symbols
+function parseCompact(s) {
+  if (!s && s !== 0) return null;
+  const raw = String(s).trim().toUpperCase();
+  let mult = 1;
+  if (raw.endsWith('B')) mult = 1e9;
+  else if (raw.endsWith('M')) mult = 1e6;
+  else if (raw.endsWith('K')) mult = 1e3;
+  const n = parseFloat(raw.replace(/[£$€,%+KMBkmb\s]/g, ''));
+  return isNaN(n) ? null : n * mult;
+}
+
+// Parse a growth / change string like "+34%", "-12", "34.5%"
+function parseGrowth(s) {
+  if (!s) return null;
+  const n = parseFloat(String(s).replace(/[+%\s,]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+function stripHash(s) {
+  return s.replace(/^#+/, '').replace(/"/g, '').trim();
+}
+</script>
 </body>
 </html>
