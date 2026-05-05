@@ -183,6 +183,7 @@
     }
     .message.error { background: #fff0f0; border: 1px solid #ffb3b3; color: #cc0000; display: block; }
     .message.success { background: #f0fff4; border: 1px solid #b3ffd1; color: #007a33; display: block; }
+    .message.info { background: #f0f4ff; border: 1px solid #b3c6ff; color: #1a3acc; display: block; font-size: 12px; font-weight: 400; }
 
     /* ── Results ── */
     .results { display: none; }
@@ -525,10 +526,15 @@ const ALIASES = {
 };
 
 function resolveColumns(headers) {
-  const lower = headers.map(h => h.toLowerCase().trim());
+  const lower = headers.map(h => h.toLowerCase().trim().replace(/\s+/g, ' '));
   const map = {};
   for (const [key, aliases] of Object.entries(ALIASES)) {
-    const idx = lower.findIndex(h => aliases.some(a => h.includes(a)));
+    // Exact match first
+    let idx = lower.findIndex(h => aliases.includes(h));
+    // Fallback: substring match only for aliases longer than 5 chars
+    if (idx === -1) {
+      idx = lower.findIndex(h => aliases.some(a => a.length > 5 && h.includes(a)));
+    }
     if (idx !== -1) map[key] = idx;
   }
   return map;
@@ -569,6 +575,10 @@ function processData(rows) {
     showMessage(`Could not find required columns: ${missing.join(', ')}. Please check your file headers.`, 'error');
     return;
   }
+
+  const detected = Object.entries(colMap).map(([k, i]) => `${k}→"${headers[i]}"`).join(', ');
+  console.log('[EVS] Column mapping:', detected);
+  showMessage(`Columns detected: ${detected}`, 'info');
 
   const results = [];
   for (let i = 1; i < rows.length; i++) {
