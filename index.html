@@ -435,7 +435,13 @@
     <div class="chart-section">
       <div class="section-header">
         <h2>Quadrant <span>Chart</span></h2>
-        <button class="btn btn-ghost" onclick="resetZoom()">Reset View</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="resetZoom()">Reset View</button>
+          <button class="btn btn-ghost" onclick="downloadChart('quadrantChart', 'evs-quadrant')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Download PNG
+          </button>
+        </div>
       </div>
       <div class="chart-card">
         <h3>EVS vs Cost per EVS</h3>
@@ -455,6 +461,10 @@
     <div class="chart-section" id="erChartSection" style="display:none">
       <div class="section-header">
         <h2>Engagement Rate <span>vs EVS</span></h2>
+        <button class="btn btn-ghost" onclick="downloadChart('erChart', 'evs-engagement-rate')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Download PNG
+        </button>
       </div>
       <div class="chart-card">
         <h3>Engagement Rate vs Engagement Value Score</h3>
@@ -821,6 +831,14 @@ function renderChart(data) {
 
 function resetZoom() {
   if (chart) { chart.resetZoom && chart.resetZoom(); }
+}
+
+function downloadChart(canvasId, filename) {
+  const canvas = document.getElementById(canvasId);
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = filename + '.png';
+  a.click();
 }
 
 // ── ER vs EVS Chart ──
