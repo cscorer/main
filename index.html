@@ -443,10 +443,23 @@
           <canvas id="quadrantChart"></canvas>
         </div>
         <div class="quadrant-legend">
-          <div class="q-label best"><strong>⬇ Right — Star Performers</strong>High EVS, low cost. Best value creators.</div>
+          <div class="q-label review"><strong>⬆ Left — Underperformers</strong>Low EVS, high cost. Prioritise review.</div>
           <div class="q-label good"><strong>⬆ Right — High Reach, Higher Cost</strong>Strong engagement but expensive. Review ROI.</div>
           <div class="q-label avg"><strong>⬇ Left — Efficient but Lower Scale</strong>Low cost, lower EVS. Good for budget campaigns.</div>
-          <div class="q-label review"><strong>⬆ Left — Underperformers</strong>Low EVS, high cost. Prioritise review.</div>
+          <div class="q-label best"><strong>⬇ Right — Star Performers</strong>High EVS, low cost. Best value creators.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-section" id="erChartSection" style="display:none">
+      <div class="section-header">
+        <h2>Engagement Rate <span>vs EVS</span></h2>
+      </div>
+      <div class="chart-card">
+        <h3>Engagement Rate vs Engagement Value Score</h3>
+        <p class="chart-sub">Shows whether a creator's traditional engagement rate aligns with their weighted EVS — divergence reveals where volume inflates or masks true quality</p>
+        <div class="chart-container">
+          <canvas id="erChart"></canvas>
         </div>
       </div>
     </div>
@@ -501,13 +514,14 @@ fileInput.addEventListener('change', e => {
 
 // ── Column aliases ──
 const ALIASES = {
-  influencer: ['influencer', 'creator', 'name', 'handle', 'account'],
-  impressions: ['impressions', 'views', 'reach', 'video views'],
-  likes:       ['likes', 'like'],
-  comments:    ['comments', 'comment'],
-  shares:      ['shares', 'share'],
-  saves:       ['saves', 'save'],
-  cost:        ['cost', 'fee', 'spend', 'rate', 'price'],
+  influencer:     ['influencer', 'creator', 'name', 'handle', 'account'],
+  impressions:    ['impressions', 'views', 'reach', 'video views'],
+  likes:          ['likes', 'like'],
+  comments:       ['comments', 'comment'],
+  shares:         ['shares', 'share'],
+  saves:          ['saves', 'save'],
+  cost:           ['cost', 'fee', 'spend', 'price'],
+  engagementRate: ['engagement rate', 'eng rate', 'er', 'engagement%'],
 };
 
 function resolveColumns(headers) {
@@ -566,13 +580,14 @@ function processData(rows) {
     const comments    = colMap.comments !== undefined ? parseNum(row[colMap.comments]) : 0;
     const shares      = colMap.shares   !== undefined ? parseNum(row[colMap.shares])   : 0;
     const saves       = colMap.saves    !== undefined ? parseNum(row[colMap.saves])    : 0;
-    const cost        = colMap.cost     !== undefined ? parseNum(row[colMap.cost])     : null;
+    const cost           = colMap.cost           !== undefined ? parseNum(row[colMap.cost])           : null;
+    const engagementRate = colMap.engagementRate !== undefined ? parseNum(row[colMap.engagementRate]) : null;
 
     const vwe = (shares * 4) + (comments * 3) + (saves * 2) + likes;
     const evs = impressions > 0 ? (vwe / impressions) * 10000 : 0;
     const costPerEvs = (cost !== null && cost > 0 && evs > 0) ? cost / evs : null;
 
-    results.push({ name, impressions, likes, comments, shares, saves, cost, vwe, evs, costPerEvs });
+    results.push({ name, impressions, likes, comments, shares, saves, cost, engagementRate, vwe, evs, costPerEvs });
   }
 
   if (!results.length) {
@@ -593,6 +608,7 @@ function render() {
   renderSummary(data);
   renderTable(data);
   renderChart(data);
+  renderErChart(data);
   document.getElementById('results').classList.add('visible');
 }
 
@@ -651,17 +667,19 @@ function renderSummary(data) {
 // ── Table ──
 function renderTable(data) {
   const hasCost = data.some(d => d.costPerEvs !== null);
+  const hasEr   = data.some(d => d.engagementRate !== null);
   const cols = [
-    { key: 'rank',       label: '#',              fmt: (_, i) => `<span class="rank-badge ${i < 3 ? 'top' : ''}">${i+1}</span>`, nosort: true },
-    { key: 'name',       label: 'Creator',        fmt: v => `<span class="name">${esc(v)}</span>` },
-    { key: 'impressions',label: 'Impressions',    fmt: v => fmtInt(v) },
-    { key: 'likes',      label: 'Likes',          fmt: v => fmtInt(v) },
-    { key: 'comments',   label: 'Comments',       fmt: v => fmtInt(v) },
-    { key: 'shares',     label: 'Shares',         fmt: v => fmtInt(v) },
-    { key: 'saves',      label: 'Saves',          fmt: v => fmtInt(v) },
+    { key: 'rank',           label: '#',                   fmt: (_, i) => `<span class="rank-badge ${i < 3 ? 'top' : ''}">${i+1}</span>`, nosort: true },
+    { key: 'name',           label: 'Creator',             fmt: v => `<span class="name">${esc(v)}</span>` },
+    { key: 'impressions',    label: 'Impressions',         fmt: v => fmtInt(v) },
+    { key: 'likes',          label: 'Likes',               fmt: v => fmtInt(v) },
+    { key: 'comments',       label: 'Comments',            fmt: v => fmtInt(v) },
+    { key: 'shares',         label: 'Shares',              fmt: v => fmtInt(v) },
+    { key: 'saves',          label: 'Saves',               fmt: v => fmtInt(v) },
     ...(hasCost ? [{ key: 'cost', label: 'Cost', fmt: v => v !== null ? `£${fmtInt(v)}` : '—' }] : []),
-    { key: 'vwe',        label: 'Value Weighted Eng.', fmt: v => fmtInt(v) },
-    { key: 'evs',        label: 'EVS',            fmt: v => `<span class="highlight">${fmt(v)}</span>`, highlight: true },
+    ...(hasEr ? [{ key: 'engagementRate', label: 'Eng. Rate', fmt: v => v !== null ? `${v.toFixed(2)}%` : '—' }] : []),
+    { key: 'vwe',            label: 'Value Weighted Eng.', fmt: v => fmtInt(v) },
+    { key: 'evs',            label: 'EVS',                 fmt: v => `<span class="highlight">${fmt(v)}</span>`, highlight: true },
     ...(hasCost ? [{ key: 'costPerEvs', label: 'Cost per EVS', fmt: v => v !== null ? `<span class="cost-per">${fmtCost(v)}</span>` : '—', highlight: true }] : []),
   ];
 
@@ -795,15 +813,87 @@ function resetZoom() {
   if (chart) { chart.resetZoom && chart.resetZoom(); }
 }
 
+// ── ER vs EVS Chart ──
+let erChart = null;
+function renderErChart(data) {
+  const plotData = data.filter(d => d.engagementRate !== null && d.evs > 0);
+  const section = document.getElementById('erChartSection');
+  if (!plotData.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const COLORS = [
+    '#1400ff','#e53e3e','#38a169','#d69e2e','#805ad5',
+    '#dd6b20','#2b6cb0','#b83280','#285e61','#744210',
+    '#2d3748','#553c9a',
+  ];
+
+  const datasets = plotData.map((d, i) => ({
+    label: d.name,
+    data: [{ x: d.evs, y: d.engagementRate }],
+    backgroundColor: COLORS[i % COLORS.length] + 'cc',
+    borderColor: COLORS[i % COLORS.length],
+    borderWidth: 2,
+    pointRadius: 10,
+    pointHoverRadius: 13,
+  }));
+
+  if (erChart) erChart.destroy();
+  const ctx = document.getElementById('erChart').getContext('2d');
+  erChart = new Chart(ctx, {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: true },
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { size: 11, weight: 'bold' }, padding: 12, usePointStyle: true, pointStyleWidth: 10 },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = plotData[ctx.datasetIndex];
+              return [`${d.name}`, `EVS: ${fmt(d.evs)}`, `Eng. Rate: ${d.engagementRate.toFixed(2)}%`];
+            },
+          },
+          backgroundColor: '#0a0a0a',
+          titleColor: '#ffffff',
+          bodyColor: '#cccccc',
+          padding: 12,
+          cornerRadius: 8,
+        },
+        annotation: {},
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Engagement Value Score (EVS)', font: { size: 12, weight: 'bold' }, color: '#444' },
+          grid: { color: '#f0f0f0' },
+          ticks: { font: { size: 11 }, color: '#666' },
+        },
+        y: {
+          title: { display: true, text: 'Engagement Rate (%)', font: { size: 12, weight: 'bold' }, color: '#444' },
+          grid: { color: '#f0f0f0' },
+          ticks: { font: { size: 11 }, color: '#666', callback: v => `${v}%` },
+        },
+      },
+    },
+    plugins: [ChartAnnotation],
+  });
+}
+
 // ── Export ──
 function exportCSV() {
   if (!currentData.length) return;
   const data = getSorted();
   const hasCost = data.some(d => d.costPerEvs !== null);
-  const headers = ['Creator','Impressions','Likes','Comments','Shares','Saves', ...(hasCost ? ['Cost'] : []), 'Value Weighted Engagements','EVS', ...(hasCost ? ['Cost per EVS'] : [])];
+  const hasEr   = data.some(d => d.engagementRate !== null);
+  const headers = ['Creator','Impressions','Likes','Comments','Shares','Saves', ...(hasCost ? ['Cost'] : []), ...(hasEr ? ['Engagement Rate'] : []), 'Value Weighted Engagements','EVS', ...(hasCost ? ['Cost per EVS'] : [])];
   const rows = data.map(d => [
     d.name, d.impressions, d.likes, d.comments, d.shares, d.saves,
     ...(hasCost ? [d.cost !== null ? d.cost : ''] : []),
+    ...(hasEr ? [d.engagementRate !== null ? `${d.engagementRate.toFixed(2)}%` : ''] : []),
     d.vwe, d.evs.toFixed(2),
     ...(hasCost ? [d.costPerEvs !== null ? d.costPerEvs.toFixed(2) : ''] : []),
   ]);
